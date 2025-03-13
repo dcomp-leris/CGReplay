@@ -1,0 +1,52 @@
+# CG server configuration
+server_IP: "200.18.102.33" # this computer IP address
+server_port: 5508 # 5501  # Port for receiving control data from a socket
+
+
+# CG  player configuration
+player_IP: "200.18.102.35" 
+player_streamin_port: 5000  # UDP port for streaming
+palyer_command_port: 5555 # Command
+player_rate_log: "./logs/ratelog_CG.txt"
+player_time_log: "./logs/timelog_CG.txt"
+received_frames: "./received_frames"
+
+# CG Server Log
+log_rate_control: "srv_ratectl_1.txt"
+log_server: "srv_total_2.txt"
+log_frame: "srv_frame_3.txt"
+
+# Resolution & Encoding Setup
+fps: 30  # Frames per second
+bitrate: 10000 #5000  # in kbps
+
+resolution:
+  width: 1364
+  height: 768
+
+
+# Game Setup 
+Forza:  # possible values: Fortnite  or  Kombat
+    name: "Forza"
+    sync_file: "./syncs/sync_forza.txt"
+    frames: "./Forza"
+
+Fortnite: 
+    name: "Fortnite"
+    sync_file: "./syncs/sync_fortnite.txt"
+    frames: "./Fortnite"
+
+Kombat: 
+    name: "Kombat"
+    sync_file: "./syncs/sync_kombat.txt"
+    frames: "./Kombat"
+
+game: "Kombat"     # Set it to start the CGReplay specific Game
+
+
+duration: 300   # in seconds
+
+SCReAM: True # False = 0 / True = 1
+    
+
+
