@@ -135,7 +135,7 @@ The command above creates a number of images corresponding to a 10 FPS video. Yo
 The generated frames are stored in `CGReplay/capturing/capturing/captured_frames` folder.
 
 
-### **Step 9: Sync frames/commands
+### **Step 9: Sync frames/commands**
 
 At this point, we already have the frames and commands logs. However, we still need to sync them:
 
