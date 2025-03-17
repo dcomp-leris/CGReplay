@@ -1,31 +1,28 @@
-# CG server configuration
-server_IP: "200.18.102.33" # this computer IP address
-server_port: 5508 # 5501  # Port for receiving control data from a socket
+# CGReplay Configuration File 
 
-
-# CG  player configuration
-player_IP: "200.18.102.35" 
-player_streamin_port: 5000  # UDP port for streaming
-palyer_command_port: 5555 # Command
-player_rate_log: "./logs/ratelog_CG.txt"
-player_time_log: "./logs/timelog_CG.txt"
-received_frames: "./received_frames"
-
-# CG Server Log
+## CG server configuration
+server_IP: "10.0.0.1" #"200.18.102.33" # this computer IP address
+server_port: 5000 # 5501  # Port for receiving control data from a socket
+server_command: 5001 # not used yet!
+server_interface: "server-eth0"
+### CG Server Log
 log_rate_control: "srv_ratectl_1.txt"
 log_server: "srv_total_2.txt"
 log_frame: "srv_frame_3.txt"
 
-# Resolution & Encoding Setup
-fps: 30  # Frames per second
-bitrate: 10000 #5000  # in kbps
-
-resolution:
-  width: 1364
-  height: 768
 
 
-# Game Setup 
+## CG  player configuration
+player_IP: "10.0.0.2" #"200.18.102.35" 
+player_streaming_port: 5002  # UDP port for streaming
+palyer_command_port: 5003 # Command
+player_interface:  "player-eth0"
+### CG Player Log
+player_rate_log: "./logs/ratelog_CG.txt"
+player_time_log: "./logs/timelog_CG.txt"
+received_frames: "./received_frames"
+
+# Game Setup Name, Frames, and sync files 
 Forza:  # possible values: Fortnite  or  Kombat
     name: "Forza"
     sync_file: "./syncs/sync_forza.txt"
@@ -41,12 +38,24 @@ Kombat:
     sync_file: "./syncs/sync_kombat.txt"
     frames: "./Kombat"
 
+# Encoding setup
+fps: 30  # Frames per second
+## Resolution 
+resolution:
+  width: 600 # default 1364
+  height: 400 # default 768
+# Startting, Min and Max video Encoding Rate
+starting_bitrate: 5000
+bitrate_min: 4000
+bitrate_max: 10000
+
+# Synchronization parameter setup for command and setreaming 
+window_min: 1 
+window_max: 4
+
+# SGReplay Running Setup
 game: "Kombat"     # Set it to start the CGReplay specific Game
-
-
+live_watching: True    # If you want to watch live gameplay set 'True' else set 'False'
 duration: 300   # in seconds
-
-SCReAM: True # False = 0 / True = 1
-    
-
-
+SCReAM: False # False = 0 / True = 1
+stop_frm_number: 100 # Stop after streaming this number of frames!
