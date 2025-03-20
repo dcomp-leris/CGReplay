@@ -2,7 +2,7 @@
 Project: CGReplay
 Main Module: Capturing
 sub Module: Screen + Joystick
-Date: 2025-03-10
+Date: 2025-03-20 / time: 14:26
 Author(s): Alireza Shirmarz
 Location: Lerislab
 '''
@@ -23,26 +23,34 @@ script1 = config["script_joystick"]
 script2 = config["script_screen"]
 waiting_time = config["starting_waiting_time"]
 
+enable_joystick =  config["capturing_options"]["enable_joystick"]
+enable_screen = config["capturing_options"]["enable_screen"]
+enable_pcap= config["capturing_options"]["enable_pcap"]
+
 try:
     print(f"Waiting {waiting_time} seconds to start logging .... ")
     time.sleep(waiting_time)
 
     # Start the Python scripts
-    #process1 = subprocess.Popen(['python3', script1, filename])
-    process2 = subprocess.Popen(['python3', script2, filename])
-
-    # Start tshark command to capture network traffic
-    process3 = subprocess.Popen([
-        'sudo', 'tshark', '-i', network_interface,
-        '-a', f'duration:{capture_duration}', '-w', f'{filename}.pcap'
-    ])
+    if enable_joystick == True:
+        process1 = subprocess.Popen(['python3', script1, filename])
+    if enable_screen == True:
+        process2 = subprocess.Popen(['python3', script2, filename])
+    if enable_pcap == True:
+        # Start tshark command to capture network traffic
+        process3 = subprocess.Popen([
+            'sudo', 'tshark', '-i', network_interface,
+            '-a', f'duration:{capture_duration}', '-w', f'{filename}.pcap'
+        ])
 
     # Wait for the Python scripts to finish
-    #process1.wait()
-    process2.wait()
-
-    # Optionally wait for tshark to finish (if needed)
-    process3.wait()
+    if enable_joystick == True:
+        process1.wait()
+    if enable_screen == True:
+        process2.wait()
+        # Optionally wait for tshark to finish (if needed)
+    if enable_pcap == True:
+        process3.wait()
 
     print("All processes finished successfully.")
 
@@ -52,7 +60,7 @@ except KeyboardInterrupt:
     print("Processes interrupted by user.")
 finally:
     # Make sure to terminate tshark and other processes if necessary
-    #process1.terminate()
+    process1.terminate()
     process2.terminate()
     process3.terminate()
     print("All processes terminated.")
