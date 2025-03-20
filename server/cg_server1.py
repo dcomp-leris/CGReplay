@@ -1,15 +1,13 @@
 '''
-# Date: 2025-03-10
+# Date: 2025-03-20 / Time: 14:20
 # Lab: LERIS/UFSCar
 # Author: Alireza Shirmarz
-# This is Configured for Netsoft 2025 Conference!
+# This is Configured for Netsoft'25 Conference!
 '''
 
-import os , time, socket, select, subprocess 
-import cv2, qrcode, gi, hashlib, yaml
+import os , sys, time, socket, select, subprocess, cv2, qrcode, gi, hashlib, yaml 
 import numpy as np, pandas as pd
-import subprocess
-import sys
+
 
 os.sched_setaffinity(0, {0})
 gi.require_version('Gst', '1.0')
@@ -19,51 +17,47 @@ from gi.repository import Gst
 Gst.init(None)
 
 # Load configuration from YAML file
-# config file is:  ../config/config.yaml
 with open("../config/config.yaml", "r") as file:
     config = yaml.safe_load(file)
 
 # Load settings from YAML file
-game_name = config["game"]
+# Loading Running Setup ****************************************************************************************
+stop_frm_number = config["Running"]["stop_frm_number"]
+game_name = config["Running"]["game"]
+
+# Loading CG Server Setup*************************************************************************************** 
+cg_server_port = config["server"]["server_port"]    # Port for receiving control (Joystick) commands from player
+cg_server_ipadress = config["server"]["server_IP"]  # CG Server IP address
+## Log Files Address in the CG Server
+rate_control_log = config["server"]["log_rate_control"]     # Logging the Encoding (H.264) Rate Control 
+server_log = config["server"]["log_server"]                 # Logging the Rate, FPS, CMD Rate .. Main Log
+frame_log = config["server"]["log_frame"]                   # Logging current_srv_fps, processing_time, bitrate 
+
+# Loading CG Gamer or Player Setup****************************************************************************** 
+player_ip = config['gamer']["player_IP"]                     # CG Gamer IP address
+player_port = config['gamer']["player_streaming_port"]       # UDP Port for streaming video to Gamer
+my_command_port = config['gamer']["palyer_command_port"]     # UDP Port for receiving the command in the CG server
 
 
-# CG_player
-player_ip = config["player_IP"]
-player_port = config["player_streaming_port"]
-my_command_port = config["palyer_command_port"]
+# Loading CG Server Sync file and Frames ***********************************************************************
+folder_path = config[game_name]["frames"]                     # The folder includes the frames in png format!
+my_command_frame_addr = config[game_name]["sync_file"]        # The sync file for scynching between frames and commands!
 
-# CG_Server
-cg_server_port = config["server_port"] #5508 # 5501  # Port for receiving control data from a socket
-cg_server_ipadress = config["server_IP"]  #"172.16.0.2"   # this computer IP address
+# Loading Encoding Setup ***************************************************************************************
+fps = config["encoding"]["fps"]                                 # Frame Rate (fps)
+resolution_width = config["encoding"]["resolution"]["width"]    # Width 
+resolution_height = config["encoding"]["resolution"]["height"]  # Height
 
-# sync setup
-folder_path = config[game_name]["frames"] 
-my_command_frame_addr = config[game_name]["sync_file"] 
-
-# Frame & Encoding setup 
-fps = config["fps"]  # Frames per second
-resolution_width = config["resolution"]["width"]
-resolution_height = config["resolution"]["height"]  #(1920,1080)  # (width, height)(1920,1080) (1364, 768)
+# Loading Protocols Setup **************************************************************************************
+scream_state=config["protocols"]["SCReAM"]                      #  CCA Protocol for UDP as SCReAM developed by Ericsson!
+scream_sender=config["protocols"]["sender"]                     # Sender as CGServer!
 
 
-# Log files address
-rate_control_log = config["log_rate_control"] #"srv_ratectl_tofino1.txt"
-server_log = config["log_server"] # "srv_total_tofino1.txt"
-frame_log = config["log_frame"] #"srv_frame_tofino1.txt" 
-
-# Scream enable or disable
-scream_state=config["SCReAM"]
-scream_sender=config["sender"]
-
-# simulation stop
-stop_frm_number = config["stop_frm_number"]
-
-# Encoding Rate Control Setup
-Enc_Rate_jump = config["jump"]
-Enc_Rate_rise = config["rise"]
-Enc_Rate_decrese = config["decrese"]
-Enc_Rate_fall = config["fall"]
-
+# Loading Sync Setup *******************************************************************************************
+Enc_Rate_jump = config["sync"]["jump"]                          # CGReplay Encoding Frame Rate jump!
+Enc_Rate_rise = config["sync"]["rise"]                          # CGReplay Encoding Frame Rate rise!
+Enc_Rate_decrese = config["sync"]["decrese"]                    # CGReplay Encoding Frame Rate decrease!
+Enc_Rate_fall = config["sync"]["fall"]                          # CGReplay Encoding Frame Rate fall!
 
 def get_pipeline_str(frame_dir):
     """Runs send.sh and captures only the GStreamer pipeline string."""
@@ -148,10 +142,9 @@ def setup_socket():
     # Allow reuse of the same address and port
     #sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
-    #my_test_port = 5555
+
     # Bind the socket to the specific source port (same as GStreamer)
-    sock.bind((cg_server_ipadress, my_command_port)) # cg_server_port))  # socket_port should be 5501 or the same source port as GStreamer
-    #sock.bind(("0.0.0.0", my_command_port))
+    sock.bind((cg_server_ipadress, my_command_port)) # cg_server_port))  # It can be  the same Streaming or differnt!
     print(f"Listening on UDP port {cg_server_port} for streaming & {my_command_port} for control (Joystick) data...")
     return sock
 
@@ -161,13 +154,13 @@ received_fame_id = 0
 def stream_frames(game_name):
     global bitrate
     # setup Encoding H.264
-    bitrate = config["starting_bitrate"]
-    bitrate_min = config["bitrate_min"] # 2000
-    bitrate_max = config["bitrate_max"] # 8000
+    bitrate = config["encoding"]["starting_bitrate"]
+    bitrate_min = config["encoding"]["bitrate_min"] # 2000
+    bitrate_max = config["encoding"]["bitrate_max"] # 8000
 
     # setup Synchronization sliding window min & max
-    window_min = config["window_min"] # 1 
-    window_max = config["window_max"] # 4
+    window_min = config["sync"]["window_min"] # 1 
+    window_max = config["sync"]["window_max"] # 4
  
 
     cmd_previous_time =  time.perf_counter()
