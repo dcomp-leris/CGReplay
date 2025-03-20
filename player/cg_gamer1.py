@@ -1,8 +1,8 @@
 '''
-# Date: 2024-11-29
+# Date: 2025-03-20 / Time: 14:20 
 # Author: Alireza Shirmarz
 # Lab: LERIS/UFScar 
-# This is Configured for Netsoft 2025 Conference!
+# This is Configured for Netsoft'25 Conference!
 # Gamer: (1) 
 '''
 
@@ -16,45 +16,47 @@ from collections import deque
 os.sched_setaffinity(0, {0})
 
 # Load configuration from YAML file
-# config file is:  ../config/config.yaml
 with open("../config/config.yaml", "r") as file:
 #with open("/home/alireza/CG_Repository/CGReplay/config/config.yaml") as file:
     config = yaml.safe_load(file)
 
 # game name
-game_name = config["game"]
+game_name = config["Running"]["game"]
+stop_frm_number = config["Running"]["stop_frm_number"]
+
 
 # server setup
-cg_server_ip = config["server_IP"]
-cg_server_port = config["server_port"]
+cg_server_ip = config["server"]["server_IP"]        # CG Server IP address
+cg_server_port = config["server"]["server_port"]    # Port for receiving control (Joystick) commands from player
+
 # client (player) setup
-player_ip = config["player_IP"]
-player_port = config["player_streaming_port"]
-my_command_port = config["palyer_command_port"]
+player_ip = config['gamer']["player_IP"]                     # CG Gamer IP address
+player_port =config['gamer']["player_streaming_port"]       # UDP Port for streaming video to Gamer
+my_command_port = config['gamer']["palyer_command_port"]
 
 # sync setup
 folder_path = config[game_name]["frames"] 
-sync_file = config[game_name]["sync_file"] 
+sync_file = config[game_name]["sync_file"]  
 
 # log setup 
-rate_log = config["player_rate_log"] 
-time_log = config["player_time_log"]
-received_frames = config["received_frames"]
-player_interface = config["player_interface"]
+rate_log = config["gamer"]["player_rate_log"] 
+time_log = config["gamer"]["player_time_log"]
+received_frames = config["gamer"]["received_frames"]
+
+player_interface = config["gamer"]["player_interface"]
 
 # Do you want to watch the Game Video live? 
-live_watching = config["live_watching"]
+live_watching = config["Running"]["live_watching"]
 
-# simulation stop
-stop_frm_number = config["stop_frm_number"]
+
 
 # Ack Rate
-ack_freq = config["ack_freq"]
+ack_freq = config["sync"]["ack_freq"]
 
 
 # Scream enable or disable
-scream_state=config["SCReAM"]
-scream_receiver=config["receiver"]
+scream_state=config["protocols"]["SCReAM"]   
+scream_receiver=config["protocols"]["receiver"]
 
 # Custom function to load autocommands.txt while handling the complex 'command' field
 def load_syncfile(file_path):
