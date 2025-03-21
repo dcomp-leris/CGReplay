@@ -1,8 +1,3 @@
----
-title: CGReplay
-
----
-
 # CGReplay
 Cloud Gaming (CG) research faces challenges due to the unpredictability of game engines and restricted access to commercial platforms and their logs.
 
@@ -12,7 +7,8 @@ _CGReplay_ captures and replays gamer commands and the corresponding video frame
 
 It enables Quality of Experience/Service (QoE/QoS) assessment under varying network conditions and serves as a foundation for broader CG research.
 
-![CGReplay](https://hackmd.io/_uploads/BJUhi5Y2kg.png)
+![image](https://github.com/user-attachments/assets/6efcadd2-4e63-497a-a5f3-03ae0cca1ad9)
+
 
 ___
 
@@ -241,30 +237,34 @@ As we are using Mininet, we can create a simple Mininet topology using MiniEdit 
 sudo python3 ./mininet/examples/miniedit.py
 ```
 
-![image](https://hackmd.io/_uploads/B1ldF8u2Jx.png)
+![image](https://github.com/user-attachments/assets/2c97a0fe-0afd-4af2-b552-54fbf265c0e8)
+
 
 
 #### B. Create a switch object
 
 Go to the left panel and select the switch object. Then, click anywhere in the MiniEdit workspace (e.g., middle) to create the object (as shown below):
 
-![image](https://hackmd.io/_uploads/Hyp2K8u3kl.png)
+![image](https://github.com/user-attachments/assets/3fea2ccd-5a27-45c4-872c-32a5a3c1fa3d)
+
 
 
 #### C. Create the hosts
 We want the simplest topology we can get. So, let's create two hosts. Similarly to the previous step, go to the left and select the host icon:
 
-![image](https://hackmd.io/_uploads/S1I-n8dh1x.png)
+![image](https://github.com/user-attachments/assets/45250afc-dcd9-4040-b0e2-0f8d2502aaf5)
+
 
 
 Then, create the objects close to the switch `S1`:
 
-![image](https://hackmd.io/_uploads/SyQDsUOhJx.png)
+![image](https://github.com/user-attachments/assets/67f0269e-2a01-480d-b3b8-36c1f421d426)
+
 
 #### D. Connect the hosts and switch
 After creating the hosts and the switch, we still need to connect those objects. To do that, select the 'blue line' icon and drag from `H1` to `S1` and from `S1` to `H2`, as the red arrows illustrated below. 
+![image](https://github.com/user-attachments/assets/99d01efa-56f6-493b-96e9-dbe8213023d3)
 
-![image](https://hackmd.io/_uploads/SJn_3Ud3ke.png)
 
 
 
@@ -274,30 +274,35 @@ This is more optional, but we recommend to rename the hosts and keep the default
 
 To do that, right click on `H1` object
 
-![image](https://hackmd.io/_uploads/B1E5tOdhyl.png)
+![image](https://github.com/user-attachments/assets/e23a7860-1666-42f8-aa20-bd0dff3ed8f5)
+
 
 
 Then, at the _Hostname_ field, rename `h1` -> `cgserver` 
 
 
-![image](https://hackmd.io/_uploads/HJtat_unyl.png)
+![image](https://github.com/user-attachments/assets/d2dff121-6b29-447c-886d-4903c926dcbe)
+
 
 Finally, repeat the process for `h2` and rename it `h2` -> `cgplayer`
 
 
-![image](https://hackmd.io/_uploads/BypG9uuh1x.png)
+![image](https://github.com/user-attachments/assets/8f76dbc7-91fa-4160-8ca9-9161467d2753)
+
 
 
 ### Step 3: Run the Mininet topology
 
 After creating the objects on MiniEdit, press run (left bottom), as shown:
 
-![image](https://hackmd.io/_uploads/HJiscuu3ke.png)
+![image](https://github.com/user-attachments/assets/652325c5-1912-4700-abe2-9e842635de06)
+
 
 
 At this moment, you should see the terminal where we called MiniEdit initializing the Mininet topology:
 
-![image](https://hackmd.io/_uploads/rJZQsddnkg.png)
+![image](https://github.com/user-attachments/assets/1d682ba3-23c0-40bf-adc9-ff0b13636c79)
+
 
 
 ### Step 3: Understanding CGReplay default configuration 
@@ -438,9 +443,11 @@ Finally, lines 60-69 allows us to tweak synchronization and sliding window confi
 **On MiniEdit and Xterm** 
 After the configuration file is set, we can run the experiment. To do it, open two xterm terminals: one for `cgserver` and another for `cgplayer`. To do this, right-click on the objects and open a terminal for each of them:
 
-![image](https://hackmd.io/_uploads/S1NmAj_31l.png)
+![image](https://github.com/user-attachments/assets/2ba8324c-4ba1-411b-a69a-036c8f87ddd0)
 
-![image](https://hackmd.io/_uploads/H1f-6iO2yl.png)
+
+![image](https://github.com/user-attachments/assets/02f1091d-a125-4b55-b899-5f55365d7a25)
+
 
 
 **Host-side (cgplayer terminal)**
@@ -453,7 +460,8 @@ python3 cg_gamer1.py
 
 At this moment, the player/gamer will be ready to receive data on ports UDP:5002 and UDP:5003, (image below)
 
-![image](https://hackmd.io/_uploads/SkAIk2dhyg.png)
+![image](https://github.com/user-attachments/assets/5df925ba-200d-46ad-8277-52fadd24576a)
+
 
 > NOTE: the cgplayer's script should always be run first!
 
@@ -467,7 +475,8 @@ python3 cg_server_1.py
 
 Immediately after we run the script on the server, a screen will show up and start replaying the frame. Meanwhile, we can see both the server and player's terminal exchanging frames and commands.
 
-![image](https://hackmd.io/_uploads/B1f6ehOh1l.png)
+![image](https://github.com/user-attachments/assets/ee4d9a1f-cdf1-4b5a-8de7-22d195b9ea67)
+
 
 The experiment stops after 300 frames, because the default configuration sets the variable `stop_frm_number` is `300`. However, you can choose whatever frame numbers you want -- assuming, it is less or equal than the total number of frames for recorded game session.
 
