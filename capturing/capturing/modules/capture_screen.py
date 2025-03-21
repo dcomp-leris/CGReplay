@@ -14,7 +14,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 ''' *********************** Code Updates **************************
-
+Project: CGReplay
+Main Module: Capturing
+sub Module: Capturing the Screen
+Date: 2025-03-10
+Author: Alireza Shirmarz
+Location: Leris lab
 ''' ***************************************************************
 import time
 import numpy as np
