@@ -1,8 +1,8 @@
 '''
-# Date: 2025-03-20 / Time: 14:20
+# Date: 2025-03-10
 # Lab: LERIS/UFSCar
 # Author: Alireza Shirmarz
-# This is Configured for Netsoft'25 Conference!
+# This is Configured for Netsoft 2025 Conference!
 '''
 
 import os , sys, time, socket, select, subprocess, cv2, qrcode, gi, hashlib, yaml 
@@ -445,4 +445,3 @@ if __name__ == "__main__":
     stream_frames(game_name)
 
     
-
