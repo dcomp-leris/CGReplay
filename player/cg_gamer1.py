@@ -1,8 +1,8 @@
 '''
-# Date: 2025-03-20 / Time: 14:20 
+# Date: 2024-11-29
 # Author: Alireza Shirmarz
 # Lab: LERIS/UFScar 
-# This is Configured for Netsoft'25 Conference!
+# This is Configured for Netsoft 2025 Conference!
 # Gamer: (1) 
 '''
 
