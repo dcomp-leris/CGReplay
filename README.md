@@ -3,72 +3,66 @@ Cloud Gaming (CG) research faces challenges due to the unpredictability of game 
 
 This creates major obstacles to conducting fair experimentation and evaluation.
 
-_CGReplay_ captures and replays gamer commands and the corresponding video frames in an ordered and synchronized action-reaction loop, ensuring reproducibility and fairness.
+_CGReplay_ captures and replays the player/gamer commands and the corresponding video frames in an ordered and synchronized action-reaction loop, ensuring reproducibility and fairness.
 
 It enables Quality of Experience/Service (QoE/QoS) assessment under varying network conditions and serves as a foundation for broader CG research.
 
-![image](https://github.com/user-attachments/assets/6efcadd2-4e63-497a-a5f3-03ae0cca1ad9)
-
+![CGReplay](https://hackmd.io/_uploads/BJUhi5Y2kg.png)
 
 ___
 
+
+## Pre-built VM
+To facilitate the demonstration, a pre-built VM with Ubuntu 24.04 and Python 3.12.3 was configured, from where the dependencies ([requirements.txt](https://github.com/dcomp-leris/CGReplay/blob/main/requirements.txt)) were extracted.
+
+---
+
+## Build from Source
+If you prefer to build everything from source, please follow the steps below
+
 ### Requirements
-* [Python 3.10 or higher](https://www.python.org/downloads/)
+* [Python 3.12.3 (or higher)](https://www.python.org/downloads/)
 * [GStreamer](https://gstreamer.freedesktop.org/download/#linux)
-* pip (22.0.2 or higher)
-* ffmpeg 4.4.2 or higher (sudo apt install ffmpeg)
-* tshark (3.6.2 or higher)
+* pip (24.0 or higher)
+* ffmpeg - 4.4.2 or higher (sudo apt install -y ffmpeg)
+* tshark - 3.6.2 or higher (sudo apt install -y tshark)
 
 
 ### Repository Structure
 
 ```
 ├── capturing
-│   ├── capturing
-│   │   ├── config.yaml
-│   │   ├── joystick_log.txt
-│   │   ├── modules
-│   │   │   ├── capture_joystick.py
-│   │   │   └── capture_screen.py
-│   │   └── run_capturing.py
-│   ├── install.txt
-│   └── synching
-│       ├── config.yaml
-│       ├── frame_log.txt
-│       ├── frames
-│       ├── mix.txt
-│       ├── modules
-│       │   ├── mixing.py
-│       │   ├── ordering.py
-│       │   └── read_frames.py
-│       ├── sync.py
-│       └── sync.txt
+│   ├── capturing
+│   │   ├── config.yaml
+│   │   ├── joystick_log.txt
+│   │   ├── modules
+│   │   │   ├── capture_joystick.py
+│   │   │   └── capture_screen.py
+│   │   └── run_capturing.py
+│   ├── install.txt
+│   └── synching
+│       ├── config.yaml
+│       ├── frame_log.txt
+│       ├── mix.txt
+│       ├── modules
+│       │   ├── mixing.py
+│       │   ├── ordering.py
+│       │   └── read_frames.py
+│       ├── sync.py
+│       └── sync.txt
 ├── config
-│   └── config.yaml
-├── gamer
-│   ├── cg_gamer1.py
-│   ├── logs
-│   │   └── received_frames
-│   ├── run_multi_cg_gamer.py
-│   └── syncs
-│       ├── sync_fortnite.txt
-│       ├── sync_forza.txt
-│       └── sync_kombat.txt
+│   └── config.yaml
+├── player
+│   ├── cg_gamer1.py
+│   ├── run_multi_cg_gamer.py
+│   └── syncs
+│       ├── sync_fortnite.txt
+│       ├── sync_forza.txt
+│       └── sync_kombat.txt
 ├── port_clean.sh
 ├── README.md
-├── requirements.txt
-├── run_CG_mininet.py
 └── server
     ├── cg_server1.py
-    ├── command.txt
-    ├── logs
-    │   ├── srv_frame.txt
-    │   ├── srv_ratectl.txt
-    │   └── srv_total.txt
-    ├── my_scream_send_log_0.csv
-    ├── srv_frame.txt
-    ├── srv_ratectl.txt
-    ├── srv_total.txt
     └── syncs
         ├── sync_fortnite.txt
         ├── sync_forza.txt
@@ -77,16 +71,18 @@ ___
 
 ___
 
-## Setup
-
-### Introduction
-CGReplay records the behavior of gamer and CG server in each cloud gaming (CG) platform and replay the CG and gamer behavior to generate the traffic; so it has two general phases: *(a) Capturing* and *(b) Replaying*. 
+## Introduction
+CGReplay records the gamer's and CG Server's behavior in each cloud gaming (CG) platform (e.g., GeForce NOW, XCloud) and replays the CG and gamer behavior to generate the traffic. So, it has two general phases: *(a) Capturing* and *(b) Replaying*. 
 
 **(a) Capturing**: Capture and record system commands along with video frames, ensuring proper synchronization between the sequence of commands and the corresponding video frames.
 
 **(b) Replaying**: Replay the captured video frames from the CG server while simultaneously executing the corresponding commands from the gamer in the correct order.
 
-Here’s a step-by-step guide to setting up a Python virtual environment (venv) for Python 3.10 or later:
+---
+
+## Setup
+
+Here’s a step-by-step guide to setting up a Python virtual environment (venv) for Python 3.12.3 or later:
 
 ### **Step 1: Joystick Configuration**
 
@@ -100,11 +96,12 @@ sudo apt install joystick
 #### If you don't have a joystick:
 Go to the file `capturing/capturing/config.yaml` and `set  enable_joystick: False` to disable the Joystick capturing. 
 
+> NOTE: If you do not have a joystick, you can only capture video frames!
 
 
-### **Step 2: Ensure Python 3.10+ is Installed**
+### **Step 2: Ensure Python 3.12.3 is Installed**
 
-Run the following command to check if Python 3.10+ is installed:
+Run the following command to check if Python 3.12.3 is installed:
 
 ```bash
 python3 --version
@@ -114,9 +111,10 @@ or
 python --version
 ```
 
-If you don’t have Python 3.10+, download and install it from the official website:
+If you don’t have Python 3.12.3, download and install it from the official website:
 [https://www.python.org/downloads/](https://www.python.org/downloads/)
 
+> NOTE: Make sure python or python3 is the alias for Python 3.12.3 with `python --version` or `python3 --version`.
 
 ### **Step 3: Create a Virtual Environment at /home/\<username\>**
 Run the following command to create a virtual environment named `venv`:
@@ -126,7 +124,7 @@ cd
 ```
 
 ```bash
-python3 -m venv venv
+python3 -m venv CGReplay_venv
 ```
 or
 
@@ -135,10 +133,10 @@ cd
 ```
 
 ```bash
-python -m venv venv
+python -m venv CGReplay_venv
 ```
 
-This will create a folder named `venv` in your _/home/\<username\>_ containing the necessary files for the virtual environment.
+This will create a folder named `CGReplay_venv` in your _/home/\<username\>_ containing the necessary files for the virtual environment.
 
 ### **Step 4: Activate the Virtual Environment**
 #### **On macOS/Linux:**
@@ -146,15 +144,23 @@ This will create a folder named `venv` in your _/home/\<username\>_ containing t
 source venv/bin/activate
 ```
 
-Once activated, you should see `(venv)` in your terminal prompt, indicating that the virtual environment is active.
+Once activated, you should see `(CGReplay_venv)` in your terminal prompt, indicating that the virtual environment is active.
 
-### **Step 5: Navigate to Your Project Directory**
+### **Step 5: Clone the project**
 Open a terminal and navigate to the directory where you want to create your virtual environment:
 
 ```bash
 cd /path/to/the/folder/you/cloned/CGReplay
 ```
 
+and clone it:
+
+```bash
+git clone https://github.com/dcomp-leris/CGReplay.git
+```
+
+### **Step 6: Download the logs and frames**
+You have access to all collected frames and command logs [HERE](https://www.kaggle.com/datasets/alirezashz/cloud-gaming-captured-screen-dataset) for testing on different games: Forza Horizon 5, Mortal Kombat 11, and Fornite.
 
 ### (Optional) **Upgrade `pip`**
 After activating the virtual environment, upgrade `pip` to the latest version:
@@ -163,7 +169,7 @@ After activating the virtual environment, upgrade `pip` to the latest version:
 pip install --upgrade pip
 ```
 
-### **Step 6: Install Dependencies**
+### **Step 7: Install Python requirements/dependencies**
 Now you can install your project's dependencies using `pip`.
 
 If you have a `requirements.txt` file, install all dependencies with:
@@ -172,12 +178,68 @@ If you have a `requirements.txt` file, install all dependencies with:
 pip install -r requirements.txt
 ```
 
+### Install GStreamer
+Let us build OpenCV with GStreamer support. First, make sure you have some tools/libraries before continue:
+
+#### Remove any `opencv-python` (a.k.a., cv2) - if any:
+
+```
+pip uninstall opencv-python --break-system-packages
+```
+
+and 
+
+```
+sudo pip uninstall opencv-python --break-system-packages
+```
+
+#### Install GStreamer:
+```
+gst-inspect-1.0 avdec_h264
+```
+
+
+#### Install dependencies:
+```
+sudo apt update && sudo apt install -y \
+  build-essential cmake git pkg-config \
+  libgtk-3-dev libcanberra-gtk* \
+  libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev \
+  libjpeg-dev libpng-dev libtiff-dev \
+  libavcodec-dev libavformat-dev libswscale-dev \
+  libv4l-dev libxvidcore-dev libx264-dev \
+  python3-dev python3-numpy \
+  libgirepository1.0-dev gir1.2-gtk-3.0
+```
+
+
+#### Install GStreamer codecs (especially H.264):
+```
+sudo apt update
+sudo apt install \
+    gstreamer1.0-plugins-base \
+    gstreamer1.0-plugins-good \
+    gstreamer1.0-plugins-bad \
+    gstreamer1.0-plugins-ugly \
+    gstreamer1.0-libav
+```
+
+#### Check if H.264 is available:
+```
+gst-inspect-1.0 avdec_h264
+```
+
+#### Test GStreamer with a dummy stream session code:
+```
+gst-launch-1.0 udpsrc port=5002 ! application/x-rtp, payload=96 ! queue max-size-time=1000000000 ! rtph264depay ! avdec_h264 ! videoconvert ! autovideosink
+```
+
 ___
 
 ## (a) Capture phase
 
 
-### **Step 7: Generate a recording**
+### **Step 8: Generate a recording**
 We need to generate a video file (e.g., mp4) before replaying it (of course).
 
 To do that, go to `CGReplay/capturing/capturing` and run `run_capturing.py
@@ -190,7 +252,7 @@ This command will run for 5 min (300 seg) to generate a file named `capture.mp4`
 
 > NOTE: We can interrupt the screen recording anytime. The faster you do it, the less frames are capture.
 
-### **Step 8: Genenerate frames/commands**
+### **Step 9: Genenerate frames/commands**
 After generating the `capture.mp4` file, we need to generate the frames (png images, in this case).
 
 ```bash
@@ -202,11 +264,26 @@ The command above creates a number of images corresponding to a 10 FPS video. Yo
 The generated frames are stored in `CGReplay/capturing/capturing/captured_frames` folder.
 
 
-### Step 9: Sync frames/commands
+### Step 10: Sync frames/commands
 
 At this point, we already have the frames and commands logs. However, we still need to sync them:
 
-Go to `CGReplay/capturing/synching` and run:
+
+Go to `CGReplay/capturing/synching` and:
+
+1. Create the output folder - if not already exists:
+
+```
+mkdir -p output
+```
+
+2. Create a log folder inside server folder:
+
+```
+mkdir -p logs
+```
+
+2. Then, run the script that synchronizes commands and frames:
 ```python
 sudo python3 sync.py
 ```
@@ -228,7 +305,27 @@ CGReplay allows to run on real networks. For instance, we could run the experime
 
 Before we start to replay the captured frames, we must make sure Mininet is installed. You can follow the guidelines [here](https://mininet.org/download/). We recommend you install from source (Option 2) or from package (Option 3).
 
-### Step 2: Create a mininet topology
+> Note: We are not going to install it from the repository, but only use MiniEdit from it. This is because the installation from source requires `pep8` which is not longer available. Even manually replacing pep8 by `pycodestyle` did not fix it.
+
+#### Install Tkinter
+Make sure you have `tkinter` to open MiniEdit:
+```sudo apt install python3-tk```
+
+#### Install zbar library
+You also need `zbar` library:
+
+```
+sudo apt install libzbar0
+```
+
+#### Install Xterm
+If, for some reason, Mininet installation from apt does not include Xterm, you can install it manually:
+
+```
+sudo apt install xterm
+```
+
+### Step 2: Create a Mininet topology
 As we are using Mininet, we can create a simple Mininet topology using MiniEdit that should look like this: `H1 <-> S1 <-> H2`, where `H1` is the server, `S1` is the switch in the middle, and `H2` is the client (gamer). To do that, follow the steps below: 
 
 
@@ -237,72 +334,63 @@ As we are using Mininet, we can create a simple Mininet topology using MiniEdit 
 sudo python3 ./mininet/examples/miniedit.py
 ```
 
-![image](https://github.com/user-attachments/assets/2c97a0fe-0afd-4af2-b552-54fbf265c0e8)
-
+![image](https://hackmd.io/_uploads/B1ldF8u2Jx.png)
 
 
 #### B. Create a switch object
 
-Go to the left panel and select the switch object. Then, click anywhere in the MiniEdit workspace (e.g., middle) to create the object (as shown below):
+Go to the left panel and select the `LegacySwitch` object. Then, click anywhere in the MiniEdit workspace (e.g., middle) to create the object (as shown below):
 
-![image](https://github.com/user-attachments/assets/3fea2ccd-5a27-45c4-872c-32a5a3c1fa3d)
-
+![image](https://hackmd.io/_uploads/Hyp2K8u3kl.png)
 
 
 #### C. Create the hosts
 We want the simplest topology we can get. So, let's create two hosts. Similarly to the previous step, go to the left and select the host icon:
 
-![image](https://github.com/user-attachments/assets/45250afc-dcd9-4040-b0e2-0f8d2502aaf5)
-
+![image](https://hackmd.io/_uploads/S1I-n8dh1x.png)
 
 
 Then, create the objects close to the switch `S1`:
 
-![image](https://github.com/user-attachments/assets/67f0269e-2a01-480d-b3b8-36c1f421d426)
-
+![image](https://hackmd.io/_uploads/SyQDsUOhJx.png)
 
 #### D. Connect the hosts and switch
 After creating the hosts and the switch, we still need to connect those objects. To do that, select the 'blue line' icon and drag from `H1` to `S1` and from `S1` to `H2`, as the red arrows illustrated below. 
-![image](https://github.com/user-attachments/assets/99d01efa-56f6-493b-96e9-dbe8213023d3)
 
+![image](https://hackmd.io/_uploads/SJn_3Ud3ke.png)
 
 
 
 #### E. Rename hosts
 
-This is more optional, but we recommend to rename the hosts and keep the default network Mininet provides.
+Rename the hosts and keep the default network Mininet provides.
 
 To do that, right click on `H1` object
 
-![image](https://github.com/user-attachments/assets/e23a7860-1666-42f8-aa20-bd0dff3ed8f5)
-
+![image](https://hackmd.io/_uploads/B1E5tOdhyl.png)
 
 
 Then, at the _Hostname_ field, rename `h1` -> `cgserver` 
 
 
-![image](https://github.com/user-attachments/assets/d2dff121-6b29-447c-886d-4903c926dcbe)
+![image](https://hackmd.io/_uploads/HJtat_unyl.png)
+
+Finally, repeat the process for `h2` and rename it: `h2` -> `cgplayer`
 
 
-Finally, repeat the process for `h2` and rename it `h2` -> `cgplayer`
-
-
-![image](https://github.com/user-attachments/assets/8f76dbc7-91fa-4160-8ca9-9161467d2753)
-
+![image](https://hackmd.io/_uploads/BypG9uuh1x.png)
 
 
 ### Step 3: Run the Mininet topology
 
 After creating the objects on MiniEdit, press run (left bottom), as shown:
 
-![image](https://github.com/user-attachments/assets/652325c5-1912-4700-abe2-9e842635de06)
-
+![image](https://hackmd.io/_uploads/HJiscuu3ke.png)
 
 
 At this moment, you should see the terminal where we called MiniEdit initializing the Mininet topology:
 
-![image](https://github.com/user-attachments/assets/1d682ba3-23c0-40bf-adc9-ff0b13636c79)
-
+![image](https://hackmd.io/_uploads/rJZQsddnkg.png)
 
 
 ### Step 3: Understanding CGReplay default configuration 
@@ -320,7 +408,7 @@ server:
     server_IP: "10.0.0.1"                # Server computer IP address
     server_port: 5000                    # UDP Port for receiving control (Joystick) commands from player
     server_command_port: 5001            # not used yet!
-    server_interface: "server-eth0"      # Not Mandatory!
+    server_interface: "cgserver-eth0"      # Not Mandatory!
     ##CGServerLog
     log_rate_control: "./logs/srv_ratectl.txt"
     log_server: "./logs/srv_total.txt"
@@ -332,7 +420,7 @@ gamer:
     player_IP: "10.0.0.2"                 # CG Gamer (or player) IP address
     player_streaming_port: 5002           # UDP port for streaming (receiving) the frames of the video games!
     palyer_command_port: 5003             # UDP Port for is binded in the server and used to send the command in the gamer system!
-    player_interface:  "player-eth0"      # Gamer interface name!
+    player_interface:  "cgplayer-eth0"      # Gamer interface name!
     ## CG Player Log CGReplay/player/logs (rate/time logs + video frames in png)
     player_rate_log: "./logs/ratelog_CG.txt"
     player_time_log: "./logs/timelog_CG.txt"
@@ -424,13 +512,13 @@ As mentioned, each component generate different logs after we run the experiment
 > NOTE: cmd is command, frm is frame, and rcv is received.
 
 
-Lines 24-37 encompasses the game setup. For now, we can choose between 3 games: Forza Horizon 5, Mortal Kombat 11 or Fortnite. For each of the games, we have a `sync_file`. This file tries to order frames arriving out-of-order (of course), synchronizing them with their respective commands.
+Lines 29-42 encompasses the game setup. For now, we can choose between 3 games: Forza Horizon 5, Mortal Kombat 11 or Fortnite. For each of the games, we have a `sync_file`. This file tries to order frames arriving out-of-order (of course), synchronizing them with their respective commands.
 
-Lines 40-46 are the encoding settings. We first set a target `fps`. For instance, 30. Also, we have the game screen resolution as 600x480, which is downscaled, because the default is 1364x768.
+Lines 46-54 are the encoding settings. We first set a target `fps`. For instance, 30. Also, we have the game screen resolution as 600x400, which is downscaled, because the default is 1364x768. For now, H.264 is the only option available for encoding algorithm.
 
 > NOTE: The target FPS is achieved (or not) depending on the hardware running the experiment.
 
-Finally, lines 60-69 allows us to tweak synchronization and sliding window configuration. For instance, `ack_freq` determines after how many packets, we should receive an ACK. The variable `game` is where we select which of the game profiles/replays we want to run (e.g., `game: "Kombat"`).
+Finally, lines 57-66 allows us to tweak synchronization and sliding window configuration. For instance, `ack_freq` determines after how many packets, we should receive an ACK. The variable `game` is where we select which of the game profiles/replays we want to run (e.g., `game: "Kombat"`).
 
 > NOTE: if you want to enable SCREAM protocol or not by setting the variable `SCReAM` as _True_ or _False_.
 
@@ -443,11 +531,9 @@ Finally, lines 60-69 allows us to tweak synchronization and sliding window confi
 **On MiniEdit and Xterm** 
 After the configuration file is set, we can run the experiment. To do it, open two xterm terminals: one for `cgserver` and another for `cgplayer`. To do this, right-click on the objects and open a terminal for each of them:
 
-![image](https://github.com/user-attachments/assets/2ba8324c-4ba1-411b-a69a-036c8f87ddd0)
+![image](https://hackmd.io/_uploads/S1NmAj_31l.png)
 
-
-![image](https://github.com/user-attachments/assets/02f1091d-a125-4b55-b899-5f55365d7a25)
-
+![image](https://hackmd.io/_uploads/H1f-6iO2yl.png)
 
 
 **Host-side (cgplayer terminal)**
@@ -460,8 +546,7 @@ python3 cg_gamer1.py
 
 At this moment, the player/gamer will be ready to receive data on ports UDP:5002 and UDP:5003, (image below)
 
-![image](https://github.com/user-attachments/assets/5df925ba-200d-46ad-8277-52fadd24576a)
-
+![image](https://hackmd.io/_uploads/SkAIk2dhyg.png)
 
 > NOTE: the cgplayer's script should always be run first!
 
@@ -473,12 +558,20 @@ Go to `CGReplay/server/` and run the script below on server-side (_cgserver_'s t
 python3 cg_server_1.py
 ```
 
-Immediately after we run the script on the server, a screen will show up and start replaying the frame. Meanwhile, we can see both the server and player's terminal exchanging frames and commands.
+Immediately after we run the script on the server, a screen will show up and start replaying the frame. Meanwhile, we can see both the server and player's terminal exchanging frames and commands with the server.
 
-![image](https://github.com/user-attachments/assets/ee4d9a1f-cdf1-4b5a-8de7-22d195b9ea67)
-
+![image](https://hackmd.io/_uploads/B1f6ehOh1l.png)
 
 The experiment stops after 300 frames, because the default configuration sets the variable `stop_frm_number` is `300`. However, you can choose whatever frame numbers you want -- assuming, it is less or equal than the total number of frames for recorded game session.
 
 
 After we run the experiment, we can have access to the logs discussed earlier on both the server- (`CGReplay/server/logs/`) and player-side (`CGReplay/player/logs/`). Also, the received frames at the user (player) will be availabled in `CGReplay/player/logs/received_frames`.
+
+
+## Demo Technical Requirements
+
+• Single laptop with Ubuntu Linux OS\
+• Monitor with HDMI support\
+• Power & Internet Access\
+• Setup Time is around 30 min\
+• The space provided by Netsoft'25
