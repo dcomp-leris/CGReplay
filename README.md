@@ -7,7 +7,7 @@ _CGReplay_ captures and replays the player/gamer commands and the corresponding 
 
 It enables Quality of Experience/Service (QoE/QoS) assessment under varying network conditions and serves as a foundation for broader CG research.
 
-![CGReplay](https://hackmd.io/_uploads/BJUhi5Y2kg.png)
+![CGReplay](imgs/cgreplay_arch.png)
 
 ___
 
@@ -334,30 +334,30 @@ As we are using Mininet, we can create a simple Mininet topology using MiniEdit 
 sudo python3 ./mininet/examples/miniedit.py
 ```
 
-![image](https://hackmd.io/_uploads/B1ldF8u2Jx.png)
+![image](imgs/open_miniedit.png)
 
 
 #### B. Create a switch object
 
 Go to the left panel and select the `LegacySwitch` object. Then, click anywhere in the MiniEdit workspace (e.g., middle) to create the object (as shown below):
 
-![image](https://hackmd.io/_uploads/Hyp2K8u3kl.png)
+![image](imgs/create_switch.png)
 
 
 #### C. Create the hosts
 We want the simplest topology we can get. So, let's create two hosts. Similarly to the previous step, go to the left and select the host icon:
 
-![image](https://hackmd.io/_uploads/S1I-n8dh1x.png)
+![image](imgs/pre_create_hosts.png)
 
 
 Then, create the objects close to the switch `S1`:
 
-![image](https://hackmd.io/_uploads/SyQDsUOhJx.png)
+![image](imgs/create_hosts.png)
 
 #### D. Connect the hosts and switch
 After creating the hosts and the switch, we still need to connect those objects. To do that, select the 'blue line' icon and drag from `H1` to `S1` and from `S1` to `H2`, as the red arrows illustrated below. 
 
-![image](https://hackmd.io/_uploads/SJn_3Ud3ke.png)
+![image](imgs/connect_objects.png)
 
 
 
@@ -367,30 +367,30 @@ Rename the hosts and keep the default network Mininet provides.
 
 To do that, right click on `H1` object
 
-![image](https://hackmd.io/_uploads/B1E5tOdhyl.png)
+![image](imgs/pre_rename_hosts.png)
 
 
 Then, at the _Hostname_ field, rename `h1` -> `cgserver` 
 
 
-![image](https://hackmd.io/_uploads/HJtat_unyl.png)
+![image](imgs/rename_server.png)
 
 Finally, repeat the process for `h2` and rename it: `h2` -> `cgplayer`
 
 
-![image](https://hackmd.io/_uploads/BypG9uuh1x.png)
+![image](imgs/rename_player.png)
 
 
 ### Step 3: Run the Mininet topology
 
 After creating the objects on MiniEdit, press run (left bottom), as shown:
 
-![image](https://hackmd.io/_uploads/HJiscuu3ke.png)
+![image](imgs/run_topology.png)
 
 
 At this moment, you should see the terminal where we called MiniEdit initializing the Mininet topology:
 
-![image](https://hackmd.io/_uploads/rJZQsddnkg.png)
+![image](imgs/check_main_mininet_terminal.png)
 
 
 ### Step 3: Understanding CGReplay default configuration 
@@ -531,9 +531,9 @@ Finally, lines 57-66 allows us to tweak synchronization and sliding window confi
 **On MiniEdit and Xterm** 
 After the configuration file is set, we can run the experiment. To do it, open two xterm terminals: one for `cgserver` and another for `cgplayer`. To do this, right-click on the objects and open a terminal for each of them:
 
-![image](https://hackmd.io/_uploads/S1NmAj_31l.png)
+![image](imgs/pre_open_xterms.png)
 
-![image](https://hackmd.io/_uploads/H1f-6iO2yl.png)
+![image](imgs/open_xterms.png)
 
 
 **Host-side (cgplayer terminal)**
@@ -546,7 +546,7 @@ python3 cg_gamer1.py
 
 At this moment, the player/gamer will be ready to receive data on ports UDP:5002 and UDP:5003, (image below)
 
-![image](https://hackmd.io/_uploads/SkAIk2dhyg.png)
+![image](imgs/cgplayer_run_session.png)
 
 > NOTE: the cgplayer's script should always be run first!
 
@@ -560,10 +560,11 @@ python3 cg_server_1.py
 
 Immediately after we run the script on the server, a screen will show up and start replaying the frame. Meanwhile, we can see both the server and player's terminal exchanging frames and commands with the server.
 
-![image](https://hackmd.io/_uploads/B1f6ehOh1l.png)
+![image](imgs/showcase_kombat.png)
 
 The experiment stops after 300 frames, because the default configuration sets the variable `stop_frm_number` is `300`. However, you can choose whatever frame numbers you want -- assuming, it is less or equal than the total number of frames for recorded game session.
 
+> NOTE: Only 15 frames from Mortal Kombat 11 are available in the `server/Kombat` path due to GitHub's size limitations. The remaining frames can be downloaded from this link and added to each game's folder. For the expected folder names, check the "Game Data Setup" section in the `config/config.yaml` file.
 
 After we run the experiment, we can have access to the logs discussed earlier on both the server- (`CGReplay/server/logs/`) and player-side (`CGReplay/player/logs/`). Also, the received frames at the user (player) will be availabled in `CGReplay/player/logs/received_frames`.
 
