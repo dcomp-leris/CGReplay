@@ -13,7 +13,7 @@ ___
 
 
 ## Pre-built VM
-To facilitate the demonstration, a pre-built VM with Ubuntu 24.04 and Python 3.12.3 was configured, from where the dependencies ([requirements.txt](https://github.com/dcomp-leris/CGReplay/blob/main/requirements.txt)) were extracted.
+To facilitate the demonstration, a [pre-built VM](https://drive.google.com/file/d/1V20co3MwUHLLgKiwa8DJJV9DDRg3wTJC/view) with Ubuntu 24.04 and Python 3.12.3 was configured, from where the dependencies ([requirements.txt](https://github.com/dcomp-leris/CGReplay/blob/main/requirements.txt)) were extracted.
 
 ---
 
