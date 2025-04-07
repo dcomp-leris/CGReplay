@@ -11,6 +11,11 @@ It enables Quality of Experience/Service (QoE/QoS) assessment under varying netw
 
 ___
 
+## Datasets
+We have provided a [link](https://www.kaggle.com/datasets/alirezashz/cloud-gaming-captured-screen-dataset) to several different cloud gaming session datasets. Specifically, these are PCAPs recorded from Xbox Cloud Gaming for Forza Horizon 5, Mortal Kombat 11, and Fortnite (so far).
+
+
+---
 
 ## Pre-built VM
 To facilitate the demonstration, a [pre-built VM](https://drive.google.com/file/d/1V20co3MwUHLLgKiwa8DJJV9DDRg3wTJC/view) with Ubuntu 24.04 and Python 3.12.3 was configured, from where the dependencies ([requirements.txt](https://github.com/dcomp-leris/CGReplay/blob/main/requirements.txt)) were extracted.
