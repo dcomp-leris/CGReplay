@@ -57,6 +57,22 @@ If you prefer to build everything from source, please follow the steps below
 │       └── sync.txt
 ├── config
 │   └── config.yaml
+├── imgs
+│   ├── cgplayer_run_session.png
+│   ├── cgreplay_arch.png
+│   ├── check_main_mininet_terminal.png
+│   ├── connect_objects.png
+│   ├── create_hosts.png
+│   ├── create_switch.png
+│   ├── open_miniedit.png
+│   ├── open_xterms.png
+│   ├── pre_create_hosts.png
+│   ├── pre_open_xterms.png
+│   ├── pre_rename_hosts.png
+│   ├── rename_player.png
+│   ├── rename_server.png
+│   ├── run_topology.png
+│   └── showcase_kombat.png
 ├── player
 │   ├── cg_gamer1.py
 │   ├── run_multi_cg_gamer.py
@@ -66,6 +82,7 @@ If you prefer to build everything from source, please follow the steps below
 │       └── sync_kombat.txt
 ├── port_clean.sh
 ├── README.md
+├── requirements.txt
 └── server
     ├── cg_server1.py
     └── syncs
