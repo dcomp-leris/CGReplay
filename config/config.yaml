@@ -6,6 +6,7 @@ server:
     server_port: 5000                    # UDP Port for receiving control (Joystick) commands from player
     server_command_port: 5001            # not used yet!
     server_interface: "server-eth0"      # Not Mandatory!
+    socket_timeout: 0.0001
     ##CGServerLog
     log_rate_control: "./logs/srv_ratectl.txt"
     log_server: "./logs/srv_total.txt"
