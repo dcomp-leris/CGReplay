@@ -1,5 +1,5 @@
 # CGReplay
-***Note:*** This paper is accepted as Demo in IEEE Netsoft 2025 conference.
+**Note:** This paper is accepted as Demo in the IEEE Netsoft 2025 conference.
 
 [![Conference](https://img.shields.io/badge/submitted-Netsoft2025-blue)](https://netsoft2025.ieee-netsoft.org/)
 [![Paper](https://img.shields.io/badge/Paper-2025/03/14-green)](CGReplay_Demo.pdf)
