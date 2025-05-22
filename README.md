@@ -1,4 +1,9 @@
 # CGReplay
+*** Note:*** This paper is accepted as Demo in IEEE Netsoft 2025 conference.
+
+[![Conference](https://img.shields.io/badge/submitted-Netsoft2025-blue)](https://netsoft2025.ieee-netsoft.org/)
+[![Paper](https://img.shields.io/badge/Paper-2025/03/14-green)](https://github.com/dcomp-leris/DCTPQ/blob/main/SBRC_Paper_2025.pdf)
+
 Cloud Gaming (CG) research faces challenges due to the unpredictability of game engines and restricted access to commercial platforms and their logs.
 
 This creates major obstacles to conducting fair experimentation and evaluation.
