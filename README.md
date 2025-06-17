@@ -222,6 +222,12 @@ and
 sudo pip uninstall opencv-python --break-system-packages
 ```
 
+#### Install `opencv-python` again inside the venv:
+```
+pip install opencv-python
+```
+
+
 #### Install GStreamer:
 ```
 gst-inspect-1.0 avdec_h264
