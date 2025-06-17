@@ -155,7 +155,7 @@ cd
 ```bash
 python3 -m venv CGReplay_venv
 ```
-or
+> NOTE: Maybe your alias is different. For instance `python3.12` instead of `python3`
 
 ```bash
 cd
