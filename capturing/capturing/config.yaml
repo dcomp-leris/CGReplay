@@ -23,6 +23,6 @@ starting_waiting_time: 5 # The time the running script waits to start in the beg
 
 # Enable & Disable the Capturing Features
 capturing_options:
-  enable_joystick: True
+  enable_joystick: False
   enable_screen: True
-  enable_pcap: True
+  enable_pcap: False

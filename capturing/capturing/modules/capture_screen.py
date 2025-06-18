@@ -20,7 +20,8 @@ sub Module: Capturing the Screen
 Date: 2025-03-10
 Author: Alireza Shirmarz
 Location: Leris lab
-''' ***************************************************************
+***************************************************************'''
+
 import time
 import numpy as np
 import cv2

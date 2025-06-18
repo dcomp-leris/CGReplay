@@ -20,7 +20,8 @@ sub Module: Capturing the Joystick
 Date: 2025-03-10
 Author: Alireza Shirmarz
 Location: Lerislab
-''' ****************************************************
+****************************************************'''
+
 import pygame
 import time
 import json
