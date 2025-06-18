@@ -199,6 +199,14 @@ pip install --upgrade pip
 ```
 
 ### **Step 7: Install Python requirements/dependencies**
+
+Install external dependencies before installing the requirements through pip (next step)
+```
+sudo apt update
+sudo apt install libcairo2-dev
+sudo apt install libgirepository1.0-dev
+```
+
 Now you can install your project's dependencies using `pip`.
 
 If you have a `requirements.txt` file, install all dependencies with:
