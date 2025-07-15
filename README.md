@@ -1,5 +1,5 @@
 # CGReplay: Capture and Replay of Cloud Gaming Traffic for QoE/QoS Assessment
-**Note:** This paper was accepted as a Demo in the IEEE Netsoft 2025 conference.
+**Note:** This paper was presented on 2025/06/25 in the IEEE Netsoft 2025 conference.
 
 [![Conference](https://img.shields.io/badge/submitted-Netsoft2025-blue)](https://netsoft2025.ieee-netsoft.org/)
 [![Paper](https://img.shields.io/badge/Paper-2025/05/21-green)](CGReplay_Demo.pdf)
