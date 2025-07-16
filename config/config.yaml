@@ -1,28 +1,30 @@
-# CGReplay Configuration File 
-
-## CG server configuration
-server_IP: "10.0.0.1" #"200.18.102.33" # this computer IP address
-server_port: 5000 # 5501  # Port for receiving control data from a socket
-server_command: 5001 # not used yet!
-server_interface: "server-eth0"
-### CG Server Log
-log_rate_control: "srv_ratectl_1.txt"
-log_server: "srv_total_2.txt"
-log_frame: "srv_frame_3.txt"
-
-
-
-## CG  player configuration
-player_IP: "10.0.0.2" #"200.18.102.35" 
-player_streaming_port: 5002  # UDP port for streaming
-palyer_command_port: 5003 # Command
-player_interface:  "player-eth0"
-### CG Player Log
-player_rate_log: "./logs/ratelog_CG.txt"
-player_time_log: "./logs/timelog_CG.txt"
-received_frames: "./received_frames"
-
-# Game Setup Name, Frames, and sync files 
+# CGReplay Configuration File
+# ---------------------------------------------------------------------------------------#
+# CG server configuration
+server:
+    server_IP: "10.0.0.1"                # Server computer IP address
+    server_port: 5000                    # UDP Port for receiving control (Joystick) commands from player
+    server_command_port: 5001            # not used yet!
+    server_interface: "server-eth0"      # Not Mandatory!
+    socket_timeout: 0.0001
+    ##CGServerLog
+    log_rate_control: "./logs/srv_ratectl.txt"
+    log_server: "./logs/srv_total.txt"
+    log_frame: "./logs/srv_frame.txt"
+# ---------------------------------------------------------------------------------------#
+# CG  player configuration
+gamer:
+    player_IP: "10.0.0.2"                 # CG Gamer (or player) IP address
+    player_streaming_port: 5002           # UDP port for streaming (receiving) the frames of the video games!
+    palyer_command_port: 5003             # UDP Port for is binded in the server and used to send the command in the gamer system!
+    player_interface:  "player-eth0"      # Gamer interface name!
+    ## CG Player Log CGReplay/player/logs (rate/time logs + video frames in png)
+    player_rate_log: "./logs/ratelog_CG.txt"
+    player_time_log: "./logs/timelog_CG.txt"
+    received_frames: "./logs/received_frames"
+    pcap_file: "./logs/my.pcap"
+# ---------------------------------------------------------------------------------------#
+# Game Data Setup 
 Forza:  # possible values: Fortnite  or  Kombat
     name: "Forza"
     sync_file: "./syncs/sync_forza.txt"
@@ -37,25 +39,40 @@ Kombat:
     name: "Kombat"
     sync_file: "./syncs/sync_kombat.txt"
     frames: "./Kombat"
+# ---------------------------------------------------------------------------------------#
+# Encoding setup 
+encoding:
+    name: "H.264" # Default 
+    fps: 30  # Frames per second
+    resolution:
+        width: 600 # default 1364
+        height: 400 # default 768
+    starting_bitrate: 5000
+    bitrate_min: 4000
+    bitrate_max: 10000
+# ---------------------------------------------------------------------------------------#
+# Synchronization Sliding Window
+sync: 
+    window_min: 1 
+    window_max: 4
+    ack_freq: 30 # Send Ack after receiving 30 frames!
+    ## Automatically increase and decrease the encoding rate (in CG server) based on frame quality and retransmission!
+    jump: 0.2
+    rise: 0.1
+    decrese: 0.2
+    fall: 0.2
 
-# Encoding setup
-fps: 30  # Frames per second
-## Resolution 
-resolution:
-  width: 600 # default 1364
-  height: 400 # default 768
-# Startting, Min and Max video Encoding Rate
-starting_bitrate: 5000
-bitrate_min: 4000
-bitrate_max: 10000
+# ---------------------------------------------------------------------------------------#
+# CGReplay Running Setup
+Running:
+    game: "Kombat"     # Set it to start the CGReplay specific Game
+    live_watching: True    # If you want to watch live gameplay set 'True' else set 'False'
+    duration: 300   # in seconds
+    stop_frm_number: 100
 
-# Synchronization parameter setup for command and setreaming 
-window_min: 1 
-window_max: 4
-
-# SGReplay Running Setup
-game: "Kombat"     # Set it to start the CGReplay specific Game
-live_watching: True    # If you want to watch live gameplay set 'True' else set 'False'
-duration: 300   # in seconds
-SCReAM: False # False = 0 / True = 1
-stop_frm_number: 100 # Stop after streaming this number of frames!
+# ---------------------------------------------------------------------------------------#
+# ScreAM Setup
+protocols:
+    SCReAM: False # False = 0 / True = 1
+    sender: "../scream/scream/gstscream/scripts/sender.sh"
+    receiver: "../scream/scream/gstscream/scripts/receiver.sh"
