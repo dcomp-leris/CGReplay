@@ -1,14 +1,13 @@
 '''
 # Date: 2025-03-10
+# Lab: LERIS/UFSCar
 # Author: Alireza Shirmarz
 # This is Configured for Netsoft 2025 Conference!
 '''
 
-import os , time, socket, select 
-import cv2, qrcode, gi, hashlib, yaml
+import os , sys, time, socket, select, subprocess, cv2, qrcode, gi, hashlib, yaml 
 import numpy as np, pandas as pd
-import subprocess
-import sys
+
 
 os.sched_setaffinity(0, {0})
 gi.require_version('Gst', '1.0')
@@ -18,62 +17,49 @@ from gi.repository import Gst
 Gst.init(None)
 
 # Load configuration from YAML file
-# config file is:  ../config/config.yaml
 with open("../config/config.yaml", "r") as file:
     config = yaml.safe_load(file)
 
 # Load settings from YAML file
-game_name = config["game"]
-# CG_player
-player_ip = config["player_IP"]
-player_port = config["player_streaming_port"]
-my_command_port = config["palyer_command_port"]
+# Loading Running Setup ****************************************************************************************
+stop_frm_number = config["Running"]["stop_frm_number"]
+game_name = config["Running"]["game"]
 
-# CG_Server
-cg_server_port = config["server_port"] #5508 # 5501  # Port for receiving control data from a socket
-cg_server_ipadress = config["server_IP"]  #"172.16.0.2"   # this computer IP address
+# Loading CG Server Setup*************************************************************************************** 
+cg_server_port = config["server"]["server_port"]    # Port for receiving control (Joystick) commands from player
+cg_server_ipadress = config["server"]["server_IP"]  # CG Server IP address
+## Log Files Address in the CG Server
+rate_control_log = config["server"]["log_rate_control"]     # Logging the Encoding (H.264) Rate Control 
+server_log = config["server"]["log_server"]                 # Logging the Rate, FPS, CMD Rate .. Main Log
+frame_log = config["server"]["log_frame"]                   # Logging current_srv_fps, processing_time, bitrate 
+cg_server_socket_timeout = config["server"]["socket_timeout"]
 
-# sync setup
-folder_path = config[game_name]["frames"] 
-my_command_frame_addr = config[game_name]["sync_file"] 
-
-# Frame & Encoding setup 
-fps = config["fps"]  # Frames per second
-bitrate = config["bitrate"] #5000  # in kbps
-resolution_width = config["resolution"]["width"]
-resolution_height = config["resolution"]["height"]  #(1920,1080)  # (width, height)(1920,1080) (1364, 768)
+# Loading CG Gamer or Player Setup****************************************************************************** 
+player_ip = config['gamer']["player_IP"]                     # CG Gamer IP address
+player_port = config['gamer']["player_streaming_port"]       # UDP Port for streaming video to Gamer
+my_command_port = config['gamer']["palyer_command_port"]     # UDP Port for receiving the command in the CG server
 
 
-# Log files address
-## Logs frame rate + command rate
-rate_control_log = config["log_rate_control"] #"srv_ratectl_tofino1.txt"
-server_log = config["log_server"] # "srv_total_tofino1.txt"
-frame_log = config["log_frame"] #"srv_frame_tofino1.txt" 
+# Loading CG Server Sync file and Frames ***********************************************************************
+folder_path = config[game_name]["frames"]                     # The folder includes the frames in png format!
+my_command_frame_addr = config[game_name]["sync_file"]        # The sync file for scynching between frames and commands!
 
-# Scream enable or disable
-scream_state=config["SCReAM"]
+# Loading Encoding Setup ***************************************************************************************
+fps = config["encoding"]["fps"]                                 # Frame Rate (fps)
+resolution_width = config["encoding"]["resolution"]["width"]    # Width 
+resolution_height = config["encoding"]["resolution"]["height"]  # Height
 
-# Streaming through the SCReAM
-'''
-def get_pipeline_str(frame_dir):
-    """Runs send.sh and captures the generated SENDPIPELINE string."""
-    try:
-        # Run send.sh and capture the output
-        result = subprocess.run(
-            ["/home/alireza/scream/scream/gstscream/scripts/sender3.sh", frame_dir], 
-            capture_output=True, 
-            text=True,
-            check=True
-        )
-        
-        # Extract pipeline string from stdout
-        pipeline_str = result.stdout.strip()
-        return pipeline_str
-    
-    except subprocess.CalledProcessError as e:
-        print(f"Error running send.sh: {e}")
-        return None
-'''
+# Loading Protocols Setup **************************************************************************************
+scream_state=config["protocols"]["SCReAM"]                      # CCA Protocol for UDP as SCReAM developed by Ericsson!
+scream_sender=config["protocols"]["sender"]                     # Sender as CGServer!
+
+
+# Loading Sync Setup *******************************************************************************************
+Enc_Rate_jump = config["sync"]["jump"]                          # CGReplay Encoding Frame Rate jump!
+Enc_Rate_rise = config["sync"]["rise"]                          # CGReplay Encoding Frame Rate rise!
+Enc_Rate_decrese = config["sync"]["decrese"]                    # CGReplay Encoding Frame Rate decrease!
+Enc_Rate_fall = config["sync"]["fall"]                          # CGReplay Encoding Frame Rate fall!
+
 def get_pipeline_str(frame_dir):
     """Runs send.sh and captures only the GStreamer pipeline string."""
     try:
@@ -111,8 +97,8 @@ def hash_string(input_string, output_size):
     return shake.hexdigest(output_size)
 
 # Custom function to load autocommands.txt while handling the complex 'command' field
-def load_autocommands(file_path):
-    autocommands = []
+def load_syncfile(file_path):
+    synccommand = []
     with open(file_path, 'r') as file:
         next(file)  # Skip the header line
         for line in file:
@@ -122,49 +108,12 @@ def load_autocommands(file_path):
                 id_and_command, encrypted_cmd = parts
                 # Split the ID from the command part
                 id_str, command_str = id_and_command.split(',', 1)
-                autocommands.append((int(id_str), command_str, encrypted_cmd.strip()))
-    return pd.DataFrame(autocommands, columns=['ID', 'command', 'encrypted_cmd'])
-'''
-# Client or Player Configuration ______________________________________
-# IP player is "200.18.102.9" for Streaming
-# UDP Port for streaming on the destination (player or client) is 5000
-player_ip = "172.16.0.1" 
-player_port = 5000  # UDP port for streaming
-my_command_port = 5555 # Command
+                synccommand.append((int(id_str), command_str, encrypted_cmd.strip()))
+    return pd.DataFrame(synccommand, columns=['ID', 'command', 'encrypted_cmd'])
 
-# _______________________________________________________________________ This computer (CG Server Configuration) 
-# Forza Server 
-# Port listening the Traffic (commands) is 5501
-# IP is  200.18.102.25 or 0.0.0.0 ________________________________________
-cg_server_port = 5508 # 5501  # Port for receiving control data from a socket
-cg_server_ipadress = "172.16.0.2"   # this computer IP address
-
-
-# set the game type to emulate
-game = {'Forza': ['/home/alireza/cgserver/processed_forza1', '/home/alireza/cgserver/autocommands_forza1.txt'], 
-        'Kombat': ['/home/alireza/cgserver/processed_kombat', '/home/alireza/cgserver/autocommands_kombat.txt'] , 
-        'Fortnite':['/home/alireza/cgserver/processed_fortnite','/home/alireza/cgserver/autocommands_fortnite.txt']}
-
-
-# Configuration Files address
-
-
-folder_path = game[game_name][0] #"/home/alireza/cgserver/Processed_Frames_Forza"  # Folder containing PNG frames 
-my_command_frame_addr = game[game_name][1] #'/home/alireza/cgserver/autocommands_forza.txt'
-#autocommands_df = load_autocommands('/home/alireza/cgserver/autocommands_forza.txt') # Load autocommands for fram/command ordering
-
-# Logs frame rate + command rate
-rate_control_log = "srv_ratectl_tofino1.txt"
-server_log = "srv_total_tofino1.txt"
-frame_log = "srv_frame_tofino1.txt"
-# Streaming Parameters
-fps = 30  # Frames per second
-bitrate = 10000 #5000  # in kbps
-resolution = (1364, 768) #(1920,1080)  # (width, height)(1920,1080) (1364, 768)
-'''
 # List of frame IDs where we want to pause and wait for socket input
-autocommands_df = load_autocommands(my_command_frame_addr) # Load autocommands for fram/command ordering
-pause_frame_ids = autocommands_df['ID'].tolist()
+sync_df = load_syncfile(my_command_frame_addr) # Load autocommands for fram/command ordering
+pause_frame_ids = sync_df['ID'].tolist()
 # Backup for Forza
 resolution = (resolution_width,resolution_height)
 
@@ -191,15 +140,13 @@ def generate_qr_code(data):
 def setup_socket():
     """Set up a UDP socket to send control messages."""
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    
     # Allow reuse of the same address and port
     #sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
-    #my_test_port = 5555
+
     # Bind the socket to the specific source port (same as GStreamer)
-    sock.bind((cg_server_ipadress, my_command_port)) # cg_server_port))  # socket_port should be 5501 or the same source port as GStreamer
-    
-    print(f"Listening on UDP port {cg_server_port} for control data...")
+    sock.bind((cg_server_ipadress, my_command_port)) # cg_server_port))  # It can be  the same Streaming or differnt!
+    print(f"Listening on UDP port {cg_server_port} for streaming & {my_command_port} for control (Joystick) data...")
     return sock
 
 # Stream the video frames
@@ -207,11 +154,16 @@ received_fame_id = 0
 
 def stream_frames(game_name):
     global bitrate
-    bitrate = 10000
-    bitrate_min = 2000
-    bitrate_max = 20000
-    window_min = 1 
-    window_max = 4
+    # setup Encoding H.264
+    bitrate = config["encoding"]["starting_bitrate"]
+    bitrate_min = config["encoding"]["bitrate_min"] # 2000
+    bitrate_max = config["encoding"]["bitrate_max"] # 8000
+
+    # setup Synchronization sliding window min & max
+    window_min = config["sync"]["window_min"] # 1 
+    window_max = config["sync"]["window_max"] # 4
+ 
+
     cmd_previous_time =  time.perf_counter()
     
     # bitrate = 10000  # in kbps
@@ -219,13 +171,6 @@ def stream_frames(game_name):
     # Set up the control socket
     control_socket = setup_socket()
     #control_socket.settimeout(1)
-
-    #data, addr = control_socket.recvfrom(1024)
-    #if data.decode() =="start":
-        #print('Game Started with command!!')      
-    #control_socket.settimeout(5)
-    #source_port = 5501
-    # GStreamer pipeline for video encoding and streaming
 
     if scream_state == False:
         ''' The main which worked!'''
@@ -238,19 +183,37 @@ def stream_frames(game_name):
             udpsink host={player_ip} port={player_port} bind-port={cg_server_port}
         """
         pipeline = Gst.parse_launch(pipeline_str)
+        #print(pipeline)
         appsrc = pipeline.get_by_name("source")
     else:
         print(f"It's value is  {scream_state}-SCReAM Enabled")
-        # SCReAM 
-        pipeline_str = get_pipeline_str(folder_path + "/%04d.png")
-        pipeline = Gst.parse_launch(pipeline_str)
-        #appsrc = pipeline.get_by_name("multifilesrc")
-        source = pipeline.get_by_name("multifilesrc")
-        if not source:
-            print("❌ Failed to retrieve multifilesrc element from the pipeline.")
-            sys.exit(1)
+        # SCReAM
         
-    
+        sender_output = subprocess.run([scream_sender], capture_output=True, text=True, shell=True)
+      
+        pipeline_str = sender_output.stdout.strip()  # Remove any extra whitespace
+        # Parse and launch the pipeline
+        pipeline = Gst.parse_launch(pipeline_str)
+        print(pipeline)
+        # Start the pipeline
+        #pipeline.set_state(Gst.State.PLAYING)
+        print(f"Using GStreamer pipeline: {pipeline_str}")
+        #if not source:
+            #print("❌ Failed to retrieve multifilesrc element from the pipeline.")
+            #sys.exit(1)
+        '''
+        # Get pipeline string
+        pipeline_str = sender_output.stdout.strip() 
+        # Debug print
+        #print(f"🚀 Debug: GStreamer Pipeline from sender.sh:\n{pipeline_str}")
+        # Check if pipeline is empty
+        if not pipeline_str:
+            print("❌ sender.sh did not return a valid pipeline.")
+        return
+        # Now parse it
+        pipeline = Gst.parse_launch(pipeline_str)       
+        appsrc = pipeline.get_by_name("source")
+        '''
     print("=========================")
     print(f"\n🔍 Debugging: Generated GStreamer Pipeline String:\n{pipeline_str}\n")
     print("=========================")
@@ -273,21 +236,13 @@ def stream_frames(game_name):
     frame_id = 1  # Frame counter (starting from 1 for human-readable frame IDs)
     png_files = sorted([f for f in os.listdir(folder_path) if f.endswith(".png")])  # List PNG files
     # flag_lock = False
-    cmd_counter = 0  #autocommands_df.shape[0] # max number 
+    cmd_counter = 0  #sync_df.shape[0] # max number 
     previous_time = time.perf_counter()
     
-    '''
-    for idx, file in enumerate(png_files):
-        frame_path = os.path.join(folder_path, file)
-        frame = cv2.imread(frame_path)  # Read the frame
-        frame_id = int(file.split('.')[0])
-        if frame is None:
-            print(f"Could not load frame {file}")
-            continue
-    '''
+
     idx = 0
     while idx < len(png_files):
-        if idx == 9000:
+        if idx == stop_frm_number: # stop after streaming 'stop_frm_number' frames! 
             break
         file = png_files[idx]  # Access the file by index
 
@@ -315,9 +270,6 @@ def stream_frames(game_name):
         qr_data = f"Frame ID: {frame_id}, rcv_timestamp: {timestamp}, resolution: {resolution},bitrate:{bitrate}"
         qr_img = generate_qr_code(qr_data)
         
-        #QR Size & Location
-        #qr_height, qr_width, _ = qr_code_img.shape
-        # Resize QR code to fit into a corner of the video frame
         qr_size = 200 #100  # QR code size in pixels
         qr_img = cv2.resize(qr_img, (qr_size, qr_size))
 
@@ -341,12 +293,9 @@ def stream_frames(game_name):
         print(f"Streaming frame {frame_id}")
         with open(frame_log, "a") as f: f.write(f"{frame_id},{current_srv_fps},{processing_time},{bitrate}\n")
         
-         # Log the frame that is being streamed
-        #print(f"Streaming frame {frame_id}")
-        #with open(server_rate, "a") as f: f.write(f"{frame_id},{current_srv_fps},{processing_time},{bitrate}\n")
-
-        # new code
-        timeout = 0.0001 # if not flag_lock else None
+        # Socket Time out 
+        timeout = cg_server_socket_timeout ## socket timeout is set in config file!
+        #timeout = 0.0001 # if not flag_lock else None
         ready_to_read, _, _ = select.select([control_socket], [], [], timeout) #0.01)  # 10 milliseconds timeout         
         received_fame_id = 0 
 
@@ -358,9 +307,7 @@ def stream_frames(game_name):
             received_time = time.perf_counter() #time.time() * 1000  # Timestamp in milliseconds
             current_cps = 1/(received_time - cmd_previous_time)
             cmd_previous_time = received_time
-            #print(f"Debug: Received command message {received_data}")
-            # Extract both timestamps and the command
-            #print(received_data)
+
             send_time = received_data[0]
             received_cmd = received_data[1]
             received_fame_id = int(received_data[2])
@@ -371,29 +318,46 @@ def stream_frames(game_name):
             #print(received_type)
             print(f"Received control data: Type ({received_type}) Time = {send_time}, from {addr}")
             #print(f"Debug: {received_cmd} | Number: {cmd_number}")
-            my_gap = frame_id - received_fame_id # to check the window 
+
+
+
+
+
+
+            my_gap = max((frame_id - received_fame_id),0) # to check the window 
             Nack_counter = 0
             rate_ctl = [None , None, None, None]
+
+
+            """
+            Logging the received data
+            """
+            with open(server_log, "a") as f: 
+                f.write(f"{frame_id},{received_fame_id},{my_gap},{received_time},{send_time},{current_srv_fps},{received_fps},{current_cps},{received_cps},{current_srv_fps/received_fps},{received_cps/current_cps},{bitrate} \n")
+                print("Total is logging!")
+
+
+
             if received_type=='Ack':
                 rate_ctl = [None , None, None, None]
                 rate_ctl[3] = 'Ack'
                 Nack_counter = 0 
-                if my_gap <= window_min:
-                    print(f'(Ack) [Fast Increase] ==> Frame ID is {frame_id} with Gap {my_gap} \n [player fps = {received_fps}] [server fps = {current_srv_fps}] \n [player cps = {received_cps} [server cps = {current_cps}]] | bitrate = {bitrate}')
-                    bitrate = bitrate + (bitrate * 0.2) if bitrate_min <= bitrate <= bitrate_max else bitrate
+                if my_gap <= window_min:    # Check to keep sync using sliding between min/max window
+                    print(f'(Ack) [High Sync:(Fast Rate Increase)] ==> Frame ID is {frame_id} with Gap {my_gap} \n [player fps = {received_fps}] [server fps = {current_srv_fps}] \n [player cps = {received_cps} [server cps = {current_cps}]] | bitrate = {bitrate}')
+                    bitrate = bitrate + (bitrate * Enc_Rate_jump) if bitrate_min <= bitrate <= bitrate_max else bitrate
                     #rate_ctl[0] = 'Fast Increase', rate_ctl[1] = 0.2, rate_ctl[2] = bitrate
-                    rate_ctl = ['Fast Increase', 0.2, bitrate,rate_ctl[3]]
+                    rate_ctl = ['Rate Jump', Enc_Rate_jump, bitrate,rate_ctl[3]]
 
                 elif window_min < my_gap <= window_max:
-                    print(f'(Ack) [Increase] ==> Frame ID is {frame_id} with Gap {my_gap} \n [player fps = {received_fps}] [server fps = {current_srv_fps}] \n [player cps = {received_cps} [server cps = {current_cps}]] | bitrate = {bitrate}')
-                    bitrate = bitrate - (bitrate * 0.1) if bitrate_min <= bitrate <= bitrate_max else bitrate
-                    rate_ctl = ['Increase', 0.1,bitrate,rate_ctl[3]]
+                    print(f'(Ack) [Sync: (Rate Increase)] ==> Frame ID is {frame_id} with Gap {my_gap} \n [player fps = {received_fps}] [server fps = {current_srv_fps}] \n [player cps = {received_cps} [server cps = {current_cps}]] | bitrate = {bitrate}')
+                    bitrate = bitrate + (bitrate * Enc_Rate_rise) if bitrate_min <= bitrate <= bitrate_max else bitrate
+                    rate_ctl = ['Rate Rise', Enc_Rate_rise,bitrate,rate_ctl[3]]
                     
                 elif my_gap > window_max:
-                    print(f'(Ack) [Decrease] ==> Frame ID is {frame_id} with Gap {my_gap} \n [player fps = {received_fps}] [server fps = {current_srv_fps}] \n [player cps = {received_cps} [server cps = {current_cps}]] | bitrate = {bitrate}')
+                    print(f'(Ack) [Critical Sync: (Rate Decrease)] ==> Frame ID is {frame_id} with Gap {my_gap} \n [player fps = {received_fps}] [server fps = {current_srv_fps}] \n [player cps = {received_cps} [server cps = {current_cps}]] | bitrate = {bitrate}')
                     # print(f'(Ack) (**Wait**) ==> Received Frame is {received_fame_id} == current {frame_id} \n [fps = {received_fps}] [server fps = {current_srv_fps}] but Gap is {my_gap}')
-                    bitrate = bitrate - (bitrate * 0.2) if bitrate_min <= bitrate <= bitrate_max else bitrate
-                    rate_ctl = ['Decrease', 0.2, bitrate,rate_ctl[3]]
+                    bitrate = bitrate - (bitrate * Enc_Rate_decrese) if bitrate_min <= bitrate <= bitrate_max else bitrate
+                    rate_ctl = ['Rate Decrease', Enc_Rate_decrese, bitrate,rate_ctl[3]]
                     #idx = idx - my_gap
 
                 #with open(rate_control_log, "a") as f: f.write(f"{frame_id},{rate_ctl}\n")
@@ -403,12 +367,12 @@ def stream_frames(game_name):
                 rate_ctl[3] = 'command'
                 if Nack_counter == 0:
                     #print(f'(Nack) ==> Received Frame is {received_fame_id}')
-                    print(f'(Nack) [Decrease & lagged!] ==> Frame ID is {frame_id} with Gap {my_gap} \n [player fps = {received_fps}] [server fps = {current_srv_fps}] \n [player cps = {received_cps} [server cps = {current_cps}]] | bitrate = {bitrate}')
+                    print(f'(Nack) [Not Sync: (Decrease & lagged!)] ==> Frame ID is {frame_id} with Gap {my_gap} \n [player fps = {received_fps}] [server fps = {current_srv_fps}] \n [player cps = {received_cps} [server cps = {current_cps}]] | bitrate = {bitrate}')
                     bitrate = bitrate - (bitrate * 0.2) if bitrate_min <= bitrate <= bitrate_max else bitrate
-                    idx = received_fame_id - my_gap
+                    idx = received_fame_id - my_gap # Create the lag! 
                     #time.sleep(0.0001)
                     Nack_counter = Nack_counter + 1
-                    rate_ctl = ['Decrease & lagged', [0.2,1], bitrate,rate_ctl[3]]
+                    rate_ctl = ['Rate Fall & lagged', [0.2,1], bitrate,rate_ctl[3]]
                     
 
                 else:
@@ -419,21 +383,14 @@ def stream_frames(game_name):
                     Nack_counter = Nack_counter + 1
                     rate_ctl = ['Fast Decrease & lagged', [0.5,my_gap], bitrate,rate_ctl[3]]
                 #with open(rate_control_log, "a") as f: f.write(f"{frame_id},{rate_ctl}\n")
-                '''
-                else:
-                    print(f'(Nack) [Drop & lagged!] ==> Frame ID is {frame_id} with Gap {my_gap} \n [player fps = {received_fps}] [server fps = {current_srv_fps}] \n [player cps = {received_cps} [server cps = {current_cps}]] | bitrate = {bitrate}')
-                    bitrate = bitrate - (bitrate * 0.5) if bitrate_min <= bitrate <= bitrate_max else bitrate
-                    idx = received_fame_id - window_max
-                    #time.sleep(0.0001)
-                    Nack_counter = Nack_counter + 1
-                '''
+
 
             elif received_type=='command':
                 rate_ctl = [None, None, None, None]
                 rate_ctl[3] = 'command'
 
                 matching_commands = []
-                matching_commands = autocommands_df[autocommands_df['ID'] == (received_fame_id)] #received_fame_id] #expected_command_id]
+                matching_commands = sync_df[sync_df['ID'] == (received_fame_id)] #received_fame_id] #expected_command_id]
                 my_cmd_number = matching_commands.shape[0]
                 cmd_counter = cmd_counter + my_cmd_number
 
@@ -441,27 +398,27 @@ def stream_frames(game_name):
                 if not matching_commands.empty:
                     state = [None , None]
                     if pause_frame_ids[cmd_counter-1] == matching_commands['ID'].iloc[0]:
-                        state[0] ='Match'
-                        print(f"Match***{my_gap}")
+                        state[0] ='Sync'
+                        print(f"Sync***{my_gap}")
                     else:
                         print(f"Ooops***{my_gap}")
-                        state[0] = 'Not Match'
+                        state[0] = 'Not Sync'
                     
                     if my_gap <= window_min:
-                        bitrate = bitrate + (bitrate * 0.1) if bitrate_min <= bitrate <= bitrate_max else bitrate
-                        state[1] = 'Rate Fast Rise'
-                        rate_ctl = ['Rate Fast Increase',  0.1,  bitrate,rate_ctl[3]]
+                        bitrate = bitrate + (bitrate * Enc_Rate_jump) if bitrate_min <= bitrate <= bitrate_max else bitrate
+                        state[1] = 'Rate Jump'
+                        rate_ctl = ['Rate Jump',  Enc_Rate_jump,  bitrate,rate_ctl[3]]
 
                     elif window_min < my_gap <= window_max:
-                        bitrate = bitrate - (bitrate * 0.1) if bitrate_min <= bitrate <= bitrate_max else bitrate
-                        state[1] = 'Rate Smooth Fall'
-                        rate_ctl = ['Rate Decrease', 0.1,  bitrate,rate_ctl[3]]
+                        bitrate = bitrate + (bitrate * Enc_Rate_rise) if bitrate_min <= bitrate <= bitrate_max else bitrate
+                        state[1] = 'Rate Rise'
+                        rate_ctl = ['Rate Rise', Enc_Rate_rise,  bitrate,rate_ctl[3]]
 
                     elif my_gap > window_max:
-                        bitrate = bitrate - (bitrate * 0.2) if bitrate_min <= bitrate <= bitrate_max else bitrate
-                        state[1] = 'Rate Faster Fall'
+                        bitrate = bitrate - (bitrate * Enc_Rate_fall) if bitrate_min <= bitrate <= bitrate_max else bitrate
+                        state[1] = 'Rate Fall'
                         #idx = idx - my_gap
-                        rate_ctl = ['Fast Decrease & lagged',[0.2, my_gap],  bitrate,rate_ctl[3]]
+                        rate_ctl = ['Fast Decrease & lagged',[Enc_Rate_fall, my_gap],  bitrate,rate_ctl[3]]
                         continue
                     
                     print(f"{state} | Gap:{my_gap} | FID:{frame_id} | player FID:{received_fame_id}"
@@ -469,24 +426,18 @@ def stream_frames(game_name):
                         f" player cps = {received_cps} | server cps = {current_cps}, , rate = {bitrate} ") 
                     
 
-                    with open(server_log, "a") as f: 
-                        f.write(f"{frame_id},{received_fame_id},{my_gap},{received_time},{send_time},{current_srv_fps},{received_fps},{current_cps},{received_cps},{current_srv_fps/received_fps},{received_cps/current_cps},{bitrate} \n")
-
+                    #with open(server_log, "a") as f: 
+                        #f.write(f"{frame_id},{received_fame_id},{my_gap},{received_time},{send_time},{current_srv_fps},{received_fps},{current_cps},{received_cps},{current_srv_fps/received_fps},{received_cps/current_cps},{bitrate} \n")
+                        #print("Total is logging!")
             
-   
-                    # Log the frame that is being streamed
-                    #print(f"Streaming frame {frame_id}")
-                    #with open(server_rate, "a") as f: f.write(f"{frame_id},{current_srv_fps/received_fps},{received_cps/current_cps},{processing_time},{bitrate}\n")
                     state = [None , None]
+
+
+
 
             with open(rate_control_log, "a") as f: f.write(f"{frame_id},{rate_ctl}\n")        
         
             
-
-        # Maintain the frame rate
-        '''if ((time.perf_counter())-timestamp) <= ((1 / fps)):
-            time.sleep((1 / fps)-((time.perf_counter())-timestamp))'''
-
     # End the stream
     appsrc.emit("end-of-stream")
     pipeline.set_state(Gst.State.NULL)
@@ -511,30 +462,8 @@ def load_config(file_path="config.txt"):
 
 if __name__ == "__main__":
     # Load configurations from the config.txt file
-    '''config = load_config("/home/alireza/cgserver/CG_server/config.txt")
-    
-    # Update global variables based on the configuration
-    game_name = config.get("game_name", "Forza")
-    player_ip = config.get("player_ip", "200.18.102.7")
-    player_port = config.get("player_port", 5000)
-    my_test_port = config.get("my_test_port", 5555)
-    cg_server_ipadress = config.get("cg_server_ipadress", "200.18.102.25")
-    cg_server_port = config.get("cg_server_port", 5508)
-    fps = config.get("fps", 30)
-    bitrate = config.get("bitrate", 5000)
-    resolution = config.get("resolution", (1364, 768))
-    
-    print(f"Loaded configuration: {config}")'''
-    '''
-    game = {'Forza': ['/home/alireza/cgserver/processed_forza', '/home/alireza/cgserver/autocommands_forza.txt'], 
-    'Kombat': ['/home/alireza/cgserver/processed_kombat', '/home/alireza/cgserver/autocommands_kombat.txt'] , 
-    'Fortnite':['/home/alireza/cgserver/processed_fortnite','/home/alireza/cgserver/autocommands_fortnite.txt']}
-    
-    '''
     # Call the stream_frames function
-    game_name = 'Forza'
-    print('Started ... ')
+    print(f'Started streaming to {cg_server_port}... ')
     stream_frames(game_name)
 
     
-
