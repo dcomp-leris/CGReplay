@@ -5,7 +5,7 @@
 [![Conference](https://img.shields.io/badge/accepted-Netsoft2025-blue)](https://netsoft2025.ieee-netsoft.org/)
 [![Paper](https://img.shields.io/badge/Paper-2025/05/21-green)](CGReplay_Demo.pdf)
 [![Paper](https://img.shields.io/badge/Presentation-2025/06/21-red)](https://docs.google.com/presentation/d/1Kf5hDO_R_EbwMqTEkOlxQvo_gMdOgFPpOrphWt-vvn8/edit?usp=sharing)
-[![Paper](https://img.shields.io/badge/Paper-Zenodo-red)](https://zenodo.org/records/15856056)
+[![Paper](https://img.shields.io/badge/Paper-Zenodo-yellow)](https://zenodo.org/records/15856056)
 
 
 
