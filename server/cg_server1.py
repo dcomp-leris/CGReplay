@@ -48,9 +48,9 @@ my_command_frame_addr = config[game_name]["sync_file"]        # The sync file fo
 fps = config["encoding"]["fps"]                                 # Frame Rate (fps)
 resolution_width = config["encoding"]["resolution"]["width"]    # Width 
 resolution_height = config["encoding"]["resolution"]["height"]  # Height
-
+GOP = config["encoding"]["GOP"]
 # Loading Protocols Setup **************************************************************************************
-scream_state=config["protocols"]["SCReAM"]                      #  CCA Protocol for UDP as SCReAM developed by Ericsson!
+scream_state=config["protocols"]["SCReAM"]                      # CCA Protocol for UDP as SCReAM developed by Ericsson!
 scream_sender=config["protocols"]["sender"]                     # Sender as CGServer!
 
 
@@ -59,6 +59,22 @@ Enc_Rate_jump = config["sync"]["jump"]                          # CGReplay Encod
 Enc_Rate_rise = config["sync"]["rise"]                          # CGReplay Encoding Frame Rate rise!
 Enc_Rate_decrese = config["sync"]["decrese"]                    # CGReplay Encoding Frame Rate decrease!
 Enc_Rate_fall = config["sync"]["fall"]                          # CGReplay Encoding Frame Rate fall!
+
+
+import struct
+
+def parse_rtcp_app_packet(data):
+    # RTCP header: 1 byte v_p_rc, 1 byte pt, 2 bytes length
+    # 4 bytes name, then payload
+    if len(data) < 8:
+        return None  # Not a valid RTCP APP packet
+    v_p_rc, pt, length = struct.unpack("!BBH", data[:4])
+    name = data[4:8]
+    payload = data[8:]
+    # Optionally, check pt == 204 (APP)
+    return payload.decode()
+
+
 
 def get_pipeline_str(frame_dir):
     """Runs send.sh and captures only the GStreamer pipeline string."""
@@ -176,12 +192,24 @@ def stream_frames(game_name):
         ''' The main which worked!'''
         print(f"It's value is {scream_state}-SCReAM Disabled!")
         # Non-Scream
+        '''
         pipeline_str = f"""
             appsrc name=source is-live=true block=true format=GST_FORMAT_TIME do-timestamp=true !
             videoconvert ! video/x-raw,format=I420,width={resolution_width},height={resolution_height},framerate={fps}/1 !
             x264enc bitrate={bitrate} speed-preset=ultrafast tune=zerolatency ! h264parse ! rtph264pay ! 
             udpsink host={player_ip} port={player_port} bind-port={cg_server_port}
         """
+        '''
+
+        pipeline_str = f"""
+            appsrc name=source is-live=true block=true format=GST_FORMAT_TIME do-timestamp=true !
+            videoconvert ! video/x-raw,format=I420,width={resolution_width},height={resolution_height},framerate={fps}/1 !
+            x264enc bitrate={bitrate} speed-preset=ultrafast tune=zerolatency key-int-max={GOP} !
+            h264parse ! rtph264pay ! 
+            udpsink host={player_ip} port={player_port} bind-port={cg_server_port}
+        """
+
+
         pipeline = Gst.parse_launch(pipeline_str)
         #print(pipeline)
         appsrc = pipeline.get_by_name("source")
@@ -241,7 +269,7 @@ def stream_frames(game_name):
     
 
     idx = 0
-    while idx < len(png_files):
+    while idx <= len(png_files):
         if idx == stop_frm_number: # stop after streaming 'stop_frm_number' frames! 
             break
         file = png_files[idx]  # Access the file by index
@@ -302,6 +330,7 @@ def stream_frames(game_name):
         if ready_to_read:
             #print('It is ready ready to receive!!!!!!')
             # Receive control data for each matching command (blocking)
+
             data, addr = control_socket.recvfrom(1024)
             received_data = data.decode().split(',')
             received_time = time.perf_counter() #time.time() * 1000  # Timestamp in milliseconds
@@ -318,9 +347,26 @@ def stream_frames(game_name):
             #print(received_type)
             print(f"Received control data: Type ({received_type}) Time = {send_time}, from {addr}")
             #print(f"Debug: {received_cmd} | Number: {cmd_number}")
-            my_gap = frame_id - received_fame_id # to check the window 
+
+
+
+
+
+
+            my_gap = max((frame_id - received_fame_id),0) # to check the window 
             Nack_counter = 0
             rate_ctl = [None , None, None, None]
+
+
+            """
+            Logging the received data
+            """
+            with open(server_log, "a") as f: 
+                f.write(f"{frame_id},{received_fame_id},{my_gap},{received_time},{send_time},{current_srv_fps},{received_fps},{current_cps},{received_cps},{current_srv_fps/received_fps},{received_cps/current_cps},{bitrate} \n")
+                print("Total is logging!")
+
+
+
             if received_type=='Ack':
                 rate_ctl = [None , None, None, None]
                 rate_ctl[3] = 'Ack'
@@ -352,7 +398,7 @@ def stream_frames(game_name):
                     #print(f'(Nack) ==> Received Frame is {received_fame_id}')
                     print(f'(Nack) [Not Sync: (Decrease & lagged!)] ==> Frame ID is {frame_id} with Gap {my_gap} \n [player fps = {received_fps}] [server fps = {current_srv_fps}] \n [player cps = {received_cps} [server cps = {current_cps}]] | bitrate = {bitrate}')
                     bitrate = bitrate - (bitrate * 0.2) if bitrate_min <= bitrate <= bitrate_max else bitrate
-                    idx = received_fame_id - my_gap # Create the lag! 
+                    idx = received_fame_id - round(my_gap/2,) # Create the lag!  
                     #time.sleep(0.0001)
                     Nack_counter = Nack_counter + 1
                     rate_ctl = ['Rate Fall & lagged', [0.2,1], bitrate,rate_ctl[3]]
@@ -361,7 +407,7 @@ def stream_frames(game_name):
                 else:
                     print(f'(Nack) [Fast Decrease & lagged!] ==> Frame ID is {frame_id} with Gap {my_gap} \n [player fps = {received_fps}] [server fps = {current_srv_fps}] \n [player cps = {received_cps} [server cps = {current_cps}]] | bitrate = {bitrate}')
                     bitrate = bitrate - (bitrate * 0.5) if bitrate_min <= bitrate <= bitrate_max else bitrate
-                    idx = received_fame_id - my_gap
+                    idx = received_fame_id - (my_gap/2)
                     #time.sleep(0.0001)
                     Nack_counter = Nack_counter + 1
                     rate_ctl = ['Fast Decrease & lagged', [0.5,my_gap], bitrate,rate_ctl[3]]
@@ -409,11 +455,14 @@ def stream_frames(game_name):
                         f" player cps = {received_cps} | server cps = {current_cps}, , rate = {bitrate} ") 
                     
 
-                    with open(server_log, "a") as f: 
-                        f.write(f"{frame_id},{received_fame_id},{my_gap},{received_time},{send_time},{current_srv_fps},{received_fps},{current_cps},{received_cps},{current_srv_fps/received_fps},{received_cps/current_cps},{bitrate} \n")
-
+                    #with open(server_log, "a") as f: 
+                        #f.write(f"{frame_id},{received_fame_id},{my_gap},{received_time},{send_time},{current_srv_fps},{received_fps},{current_cps},{received_cps},{current_srv_fps/received_fps},{received_cps/current_cps},{bitrate} \n")
+                        #print("Total is logging!")
             
                     state = [None , None]
+
+
+
 
             with open(rate_control_log, "a") as f: f.write(f"{frame_id},{rate_ctl}\n")        
         
@@ -441,6 +490,8 @@ def load_config(file_path="config.txt"):
     return config
 
 if __name__ == "__main__":
+    subprocess.run(["rm", "-f", "/home/alireza/mycg/CGReplay/server/logs/*"], check=True)
+    print("All logs were removed in the beginning!")
     # Load configurations from the config.txt file
     # Call the stream_frames function
     print(f'Started streaming to {cg_server_port}... ')

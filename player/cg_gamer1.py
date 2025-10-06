@@ -103,9 +103,15 @@ sync_df = load_syncfile(sync_file)
 # kill all ports
 subprocess.run("../port_clean.sh")
 
+# Add to synch for mininet!!
+with open("/tmp/player_ready", "w") as f:
+    f.write("ready")
+
+
 print(f"palyer is ready to receive {player_port} & command sent on {my_command_port}")
 
-# Function to send command to server
+# Function to send command to server (Pure UDP)
+
 def send_command(frame_id, encrypted_cmd, interface_name= player_interface, type='command', number = 0, fps = 0, cps = 0): # #"enp0s31f6" wlp0s20f3
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
@@ -119,7 +125,34 @@ def send_command(frame_id, encrypted_cmd, interface_name= player_interface, type
     #print("***"+player_interface+"***")
     
     sock.close()
+'''
+import struct
+# Function to send command to server (RTP over UDP)
+def send_command(frame_id, encrypted_cmd, interface_name=player_interface, type='command', number=0, fps=0, cps=0):
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+    # Optionally bind to interface
+    # sock.setsockopt(socket.SOL_SOCKET, socket.SO_BINDTODEVICE, interface_name.encode())
+    sock.bind((player_ip, player_port))
 
+    timestamp = time.perf_counter()
+    message = f"{timestamp},{encrypted_cmd},{frame_id},{type},{number},{fps},{cps}".encode()
+
+    # Minimal RTCP header: Version(2 bits), Padding(1), RC(5), PT(8), length(16)
+    # We'll use PT=204 (APP packet, for custom data)
+    v_p_rc = (2 << 6) | 0  # Version 2, no padding, RC=0
+    pt = 204  # APP packet
+    length = (len(message) + 8) // 4 - 1  # RTCP length field is in 32-bit words minus one
+
+    # RTCP header: 1 byte v_p_rc, 1 byte pt, 2 bytes length
+    header = struct.pack("!BBH", v_p_rc, pt, length)
+    # 4 bytes name (for APP packets, can be anything)
+    name = b'CGPL'
+    rtcp_packet = header + name + message
+
+    sock.sendto(rtcp_packet, (cg_server_ip, my_command_port))
+    sock.close()
+'''
 # Function to read the QR code from the frame
 def read_qr_code_from_frame(frame):
     """Reads the QR code from a given frame and extracts its data."""
@@ -139,7 +172,7 @@ def read_qr_code_from_frame(frame):
         if frame_id:
             return int(frame_id), qr_data
 
-    return None, None
+    return -1, None
 
 
 
@@ -300,7 +333,7 @@ while True:
 
     my_try_counter = my_try_counter + 1
     print(f'Recieved Frame # is: {my_try_counter}')
-    if my_try_counter == stop_frm_number:
+    if my_try_counter == stop_frm_number or (max((frame_id),0)+1) == stop_frm_number:
          break
 
     # Press 'q' to exit the video display window

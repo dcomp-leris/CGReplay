@@ -1,0 +1,26 @@
+# To run from the tools
+
+editcap -F libpcap my.pcap my_converted.pcap
+
+gst-launch-1.0 -v filesrc location=./my_converted.pcap ! pcapparse ! application/x-rtp,encoding-name=H264,payload=96 ! rtph264depay ! avdec_h264 ! autovideosink
+
+
+# To run the the running server and player from host
+
+
+sudo mnexec -a $(pgrep -f 'bash.*player') python3 /home/alireza/mycg/CGReplay/player/cg_gamer1.py
+sudo mnexec -a $(pgrep -f 'bash.*server') python3 /home/alireza/mycg/CGReplay/server/cg_server1.py
+
+
+###### Extract the Frames
+ffmpeg -fflags +genpts -err_detect ignore_err -flags2 showall   -r 15 -i ./output.mp4   -vf "setpts=N/(15*TB),fps=30,format=rgb24"   ./frames/frame_%04d.png
+
+ffmpeg -fflags +genpts -err_detect ignore_err -flags2 showall   -r 15 -i ./output.mp4   -vf "setpts=N/(15*TB),fps=30,format=rgb24"   ./frames/frame_%04d.png
+
+
+bash -c 'f="./pcap_cache/my_10Mbps.mp4"; fps=$(ffprobe -v error
+ -select_streams v:0 -show_entries stream=avg_frame_rate -of csv=p=0 "$f" | awk -F/ "{printf \"%.3f\", \
+$1/\$2}"); dur=$(ffprobe -v error -show_entries format=duration -of csv=p=0 "$f"); awk -v fps="$fps" -v 
+dur="$dur" "BEGIN{printf \"fps=%.3f  duration=%.3fs (%02d:%02d:%06.3f)  ~frames=%d\n\", fps, dur, int(du
+r/3600), int(dur%3600/60), dur%60, int(fps*dur+0.5)}"'
+fps=16.208  duration=6.170s (00:00:06.170)  ~frames=100

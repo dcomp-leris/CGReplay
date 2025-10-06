@@ -22,6 +22,7 @@ gamer:
     player_rate_log: "./logs/ratelog_CG.txt"
     player_time_log: "./logs/timelog_CG.txt"
     received_frames: "./logs/received_frames"
+    pcap_file: "./logs/my.pcap"
 # ---------------------------------------------------------------------------------------#
 # Game Data Setup 
 Forza:  # possible values: Fortnite  or  Kombat
@@ -43,10 +44,11 @@ Kombat:
 encoding:
     name: "H.264" # Default 
     fps: 30  # Frames per second
+    GOP: 3
     resolution:
         width: 600 # default 1364
         height: 400 # default 768
-    starting_bitrate: 5000
+    starting_bitrate: 5000 # Kbps
     bitrate_min: 4000
     bitrate_max: 10000
 # ---------------------------------------------------------------------------------------#
@@ -65,8 +67,8 @@ sync:
 # CGReplay Running Setup
 Running:
     game: "Kombat"     # Set it to start the CGReplay specific Game
-    live_watching: True    # If you want to watch live gameplay set 'True' else set 'False'
-    duration: 300   # in seconds
+    live_watching: False    # If you want to watch live gameplay set 'True' else set 'False'
+    duration: 100   # in seconds
     stop_frm_number: 100
 
 # ---------------------------------------------------------------------------------------#
@@ -75,3 +77,4 @@ protocols:
     SCReAM: False # False = 0 / True = 1
     sender: "../scream/scream/gstscream/scripts/sender.sh"
     receiver: "../scream/scream/gstscream/scripts/receiver.sh"
+
