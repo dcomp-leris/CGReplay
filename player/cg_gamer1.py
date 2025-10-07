@@ -53,6 +53,11 @@ live_watching = config["Running"]["live_watching"]
 # Ack Rate
 ack_freq = config["sync"]["ack_freq"]
 
+# Encoding Setup
+MyvideoEncoder = config["encoding"]["name"] # Encoder name e.g., H.264/H.265 
+mydecoder = config["encoding"][MyvideoEncoder]["decoder"]
+myrtp = config["encoding"][MyvideoEncoder]["Depacketization"]
+
 
 # Scream enable or disable
 scream_state=config["protocols"]["SCReAM"]   
@@ -178,10 +183,16 @@ def read_qr_code_from_frame(frame):
 
 if scream_state==False:
     # GStreamer pipeline to receive video stream from port 5000
+    
+    gstreamer_pipeline = (
+         f"udpsrc port={player_port} ! application/x-rtp, payload=96 ! "
+        f"queue max-size-time=1000000000 ! {myrtp} ! {mydecoder} ! videoconvert ! appsink"
+    )
+    '''
     gstreamer_pipeline = (
          f"udpsrc port={player_port} ! application/x-rtp, payload=96 ! "
         "queue max-size-time=1000000000 ! rtph264depay ! avdec_h264 ! videoconvert ! appsink"
-    )
+    )'''
 else:
     # Run receiver.sh and capture the pipeline output
     receiver_output = subprocess.run([scream_receiver], capture_output=True, text=True, shell=True)

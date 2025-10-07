@@ -8,9 +8,14 @@ server/Fortnite/*.png
 server/Forza/*.png
 server/Kombat/*.png
 tools/frames/*.*
+tools/my_converted.pcap
+tools/pcap_cache/my_converted.pcap
+tools/*.mp4
+my_converted.pcap
 tools/Kombat/*.png
 tools/MyPCAP/*.*
-pcap_cache/*.*
+tools/pcap_cache/*.mp4
+tools/pcap_cache/*.pcap
 visualization/*.*
 ./*.pcap
 ./*.png

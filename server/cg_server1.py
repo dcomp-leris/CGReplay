@@ -49,6 +49,10 @@ fps = config["encoding"]["fps"]                                 # Frame Rate (fp
 resolution_width = config["encoding"]["resolution"]["width"]    # Width 
 resolution_height = config["encoding"]["resolution"]["height"]  # Height
 GOP = config["encoding"]["GOP"]
+MyvideoEncoder = config["encoding"]["name"] # Encoder name e.g., H.264/H.265 
+myencoder = config["encoding"][MyvideoEncoder]["encoder"]
+myparser = config["encoding"][MyvideoEncoder]["parsing"]
+myrtp = config["encoding"][MyvideoEncoder]["packetization"]
 # Loading Protocols Setup **************************************************************************************
 scream_state=config["protocols"]["SCReAM"]                      # CCA Protocol for UDP as SCReAM developed by Ericsson!
 scream_sender=config["protocols"]["sender"]                     # Sender as CGServer!
@@ -196,7 +200,8 @@ def stream_frames(game_name):
         pipeline_str = f"""
             appsrc name=source is-live=true block=true format=GST_FORMAT_TIME do-timestamp=true !
             videoconvert ! video/x-raw,format=I420,width={resolution_width},height={resolution_height},framerate={fps}/1 !
-            x264enc bitrate={bitrate} speed-preset=ultrafast tune=zerolatency ! h264parse ! rtph264pay ! 
+            x264enc bitrate={bitrate} speed-preset=ultrafast tune=zerolatency key-int-max={GOP} !
+            h264parse ! rtph264pay ! 
             udpsink host={player_ip} port={player_port} bind-port={cg_server_port}
         """
         '''
@@ -204,11 +209,11 @@ def stream_frames(game_name):
         pipeline_str = f"""
             appsrc name=source is-live=true block=true format=GST_FORMAT_TIME do-timestamp=true !
             videoconvert ! video/x-raw,format=I420,width={resolution_width},height={resolution_height},framerate={fps}/1 !
-            x264enc bitrate={bitrate} speed-preset=ultrafast tune=zerolatency key-int-max={GOP} !
-            h264parse ! rtph264pay ! 
+            {myencoder} bitrate={bitrate} speed-preset=ultrafast tune=zerolatency key-int-max={GOP} !
+            {myparser} ! {myrtp} ! 
             udpsink host={player_ip} port={player_port} bind-port={cg_server_port}
         """
-
+        
 
         pipeline = Gst.parse_launch(pipeline_str)
         #print(pipeline)

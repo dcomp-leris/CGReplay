@@ -42,13 +42,25 @@ Kombat:
 # ---------------------------------------------------------------------------------------#
 # Encoding setup 
 encoding:
-    name: "H.264" # Default 
+    name: "H.265" # Default
+    H.264:
+        encoder: "x264enc"
+        parsing: "h264parse"
+        packetization: "rtph264pay"
+        decoder: "avdec_h264"
+        Depacketization: "rtph264depay"
+    H.265:
+        encoder: "x265enc"
+        parsing: "h265parse"
+        packetization: "rtph265pay"
+        decoder: "avdec_h265"
+        Depacketization: "rtph265depay"
     fps: 30  # Frames per second
     GOP: 3
     resolution:
         width: 600 # default 1364
         height: 400 # default 768
-    starting_bitrate: 5000 # Kbps
+    starting_bitrate: 1000 #5000 # Kbps
     bitrate_min: 4000
     bitrate_max: 10000
 # ---------------------------------------------------------------------------------------#
