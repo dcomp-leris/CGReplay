@@ -24,3 +24,10 @@ $1/\$2}"); dur=$(ffprobe -v error -show_entries format=duration -of csv=p=0 "$f"
 dur="$dur" "BEGIN{printf \"fps=%.3f  duration=%.3fs (%02d:%02d:%06.3f)  ~frames=%d\n\", fps, dur, int(du
 r/3600), int(dur%3600/60), dur%60, int(fps*dur+0.5)}"'
 fps=16.208  duration=6.170s (00:00:06.170)  ~frames=100
+
+
+
+
+ffmpeg -framerate 16.12 -i ../server/Kombat/%04d.png -c:v libx264 -pix_fmt yuv420p ./pcap_cache/reference.mp4
+
+

@@ -31,7 +31,40 @@ cg_server_ipadress = config["server"]["server_IP"]  # CG Server IP address
 ## Log Files Address in the CG Server
 rate_control_log = config["server"]["log_rate_control"]     # Logging the Encoding (H.264) Rate Control 
 server_log = config["server"]["log_server"]                 # Logging the Rate, FPS, CMD Rate .. Main Log
-frame_log = config["server"]["log_frame"]                   # Logging current_srv_fps, processing_time, bitrate 
+# frame_id,received_fame_id,my_gap,received_time,send_time,current_srv_fps,received_fps,current_cps,received_cps,current_srv_fps/received_fps,received_cps/current_cps,bitrate
+frame_log = config["server"]["log_frame"]                   # Logging Frame ID, current_srv_fps, processing_time, bitrate 
+
+'''
+Referesh Logs
+'''
+# Remove rate_Control log
+if os.path.exists(rate_control_log):
+    os.remove(rate_control_log)
+
+with open(rate_control_log, "w") as f:
+    f.write("frame_id,rate_ctl\n")
+
+
+# Remove server log
+if os.path.exists(server_log):
+    os.remove(server_log)
+
+with open(server_log, "w") as f:
+    f.write("frame_id,received_fame_id,my_gap,received_time,send_time,current_srv_fps,received_fps,current_cps,received_cps,current_srv_fps/received_fps,received_cps/current_cps,bitrate\n")
+
+
+
+# Remove frame Log
+if os.path.exists(frame_log):
+    os.remove(frame_log)
+
+with open(frame_log, "w") as f:
+    f.write("frame_id,resolution,Frame Size(Byte),GOP,current_srv_fps,processing_time,bitrate\n")
+
+
+
+
+# All frames with Bitrate
 cg_server_socket_timeout = config["server"]["socket_timeout"]
 
 # Loading CG Gamer or Player Setup****************************************************************************** 
@@ -214,6 +247,7 @@ def stream_frames(game_name):
             udpsink host={player_ip} port={player_port} bind-port={cg_server_port}
         """
         
+        # frame_size_bytes ≈ (bitrate_kbps * 1000) / 8 / fps
 
         pipeline = Gst.parse_launch(pipeline_str)
         #print(pipeline)
@@ -275,8 +309,8 @@ def stream_frames(game_name):
 
     idx = 0
     while idx <= len(png_files):
-        if idx == stop_frm_number: # stop after streaming 'stop_frm_number' frames! 
-            break
+        #if idx == stop_frm_number: # stop after streaming 'stop_frm_number' frames! 
+            #break
         file = png_files[idx]  # Access the file by index
 
         # Construct the full file path
@@ -285,6 +319,9 @@ def stream_frames(game_name):
         # Load the frame
         frame = cv2.imread(frame_path)  # Read the image file
         frame_id = int(file.split('.')[0])  # Extract frame ID from the filename
+
+        if frame_id == stop_frm_number+1: # stop after streaming 'stop_frm_number' frames! 
+            break
 
         if frame is None:
             print(f"Could not load frame {file}")
@@ -297,7 +334,8 @@ def stream_frames(game_name):
         
         timestamp = time.perf_counter()
         # Resize frame to the desired resolution
-        frame = cv2.resize(frame, resolution)
+        #frame = cv2.resize(frame, resolution)
+        frame = cv2.resize(frame, resolution, interpolation=cv2.INTER_AREA)
 
 
         qr_data = f"Frame ID: {frame_id}, rcv_timestamp: {timestamp}, resolution: {resolution},bitrate:{bitrate}"
@@ -312,7 +350,8 @@ def stream_frames(game_name):
         frame[y_offset:y_offset + qr_size, x_offset:x_offset + qr_size] = qr_img
 
         # Convert frame to bytes and push to GStreamer
-        gst_buffer = Gst.Buffer.new_wrapped(frame.tobytes())
+        frame_byte = frame.tobytes()
+        gst_buffer = Gst.Buffer.new_wrapped(frame_byte) #frame.tobytes())
 
          
         appsrc.emit("push-buffer", gst_buffer)
@@ -322,9 +361,9 @@ def stream_frames(game_name):
         processing_time = my_fps_time - timestamp
         previous_time = my_fps_time
 
-        # Log the frame that is being streamed
+        # Log the frame that is being streamed (frame_log.txt)
         print(f"Streaming frame {frame_id}")
-        with open(frame_log, "a") as f: f.write(f"{frame_id},{current_srv_fps},{processing_time},{bitrate}\n")
+        with open(frame_log, "a") as f: f.write(f"{frame_id},{resolution},{len(frame_byte)},{GOP},{current_srv_fps},{processing_time},{bitrate}\n")
         
         # Socket Time out 
         timeout = cg_server_socket_timeout ## socket timeout is set in config file!
@@ -364,7 +403,7 @@ def stream_frames(game_name):
 
 
             """
-            Logging the received data
+            Logging the received data (srv_QoEMetrics) 
             """
             with open(server_log, "a") as f: 
                 f.write(f"{frame_id},{received_fame_id},{my_gap},{received_time},{send_time},{current_srv_fps},{received_fps},{current_cps},{received_cps},{current_srv_fps/received_fps},{received_cps/current_cps},{bitrate} \n")
@@ -495,8 +534,8 @@ def load_config(file_path="config.txt"):
     return config
 
 if __name__ == "__main__":
-    subprocess.run(["rm", "-f", "/home/alireza/mycg/CGReplay/server/logs/*"], check=True)
-    print("All logs were removed in the beginning!")
+    #subprocess.run(["rm", "-f", "/home/alireza/mycg/CGReplay/server/logs/*"], check=True)
+    #print("All logs were removed in the beginning!")
     # Load configurations from the config.txt file
     # Call the stream_frames function
     print(f'Started streaming to {cg_server_port}... ')

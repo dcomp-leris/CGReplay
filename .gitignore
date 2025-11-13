@@ -20,3 +20,6 @@ visualization/*.*
 ./*.pcap
 ./*.png
 ./*.txt
+./sources/Fortnite/*.png
+./sources/Forza/*.png
+./sources/Kombat/*.png

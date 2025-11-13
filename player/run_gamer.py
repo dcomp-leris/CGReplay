@@ -107,52 +107,12 @@ def load_config(file_path="config.txt"):
     return config
 
 if __name__ == "__main__":
-    '''
-    #run_kill_ports()
-    #run_delete_pcap()
-    #run_delete_frames1()
-    #run_delete_frames2()
-    #run_delete_frames3()
-    # Load configuration from YAML file
+    
     with open("../config/config.yaml", "r") as file:
         config = yaml.safe_load(file)
-
-    NIC = config["gamer"]["player_interface"]
-    pcap_file = config["gamer"]["pcap_file"]
-
-    player1_process = multiprocessing.Process(target=run_player1)
-
-    remove_process = multiprocessing.Process(target=remove_log_files)
-    #player2_process = multiprocessing.Process(target=run_player2)
-    #player3_process = multiprocessing.Process(target=run_player3)
-    tshark_process = multiprocessing.Process(target=run_tshark, args=(NIC,pcap_file))
-    
-
-    print('\n')
-    print('+++++++++++++++++++++++++')
-    # Create processes
-    
-    #scream_process = multiprocessing.Process(target=run_scream_command)
-    remove_process.start()
-    # Start processes
-    player1_process.start()
-    #player2_process.start()
-    #player3_process.start()
-    tshark_process.start()
-    
-    #scream_process.start()
-    remove_process.join()
-    #print("Log files were removed!")
-    # Wait for both to complete
-    player1_process.join()
-    #player2_process.join()
-    #player3_process.join()
-    tshark_process.join()
-    #scream_process.join()
-    '''
-    if __name__ == "__main__":
-        with open("../config/config.yaml", "r") as file:
-            config = yaml.safe_load(file)
+    #if __name__ == "__main__":
+        #with open("../config/config.yaml", "r") as file:
+            #config = yaml.safe_load(file)
 
     NIC = config["gamer"]["player_interface"]
     pcap_file = config["gamer"]["pcap_file"]

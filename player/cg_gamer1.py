@@ -6,7 +6,7 @@
 # Gamer: (1) 
 '''
 
-import cv2, os, socket, time, yaml, threading, subprocess
+import cv2, os, socket, time, yaml, threading, subprocess, glob
 import pandas as pd
 from datetime import datetime
 from pyzbar import pyzbar
@@ -41,7 +41,37 @@ sync_file = config[game_name]["sync_file"]
 # log setup 
 rate_log = config["gamer"]["player_rate_log"] 
 time_log = config["gamer"]["player_time_log"]
+frame_log = config["gamer"]["player_frame_log"]
 received_frames = config["gamer"]["received_frames"]
+
+
+'''
+Referesh Logs
+'''
+
+[os.remove(f) for f in glob.glob(received_frames+"/*") if os.path.isfile(f)]
+
+# Remove rate_Control log
+if os.path.exists(rate_log):
+    os.remove(rate_log)
+
+# Remove server log
+if os.path.exists(time_log):
+    os.remove(time_log)
+
+# Remove frame Log
+if os.path.exists(frame_log):
+    os.remove(frame_log)
+
+# Create new logs with headers
+with open(rate_log, "w") as f:
+    f.write("frame_id,fps,cps\n")
+with open(time_log, "w") as f:
+    f.write("frame_id,frame_timestamp,cmd_timestamp\n")
+with open(frame_log, "w") as f:
+    f.write("frame_id,fps,retry_status\n")
+
+
 
 player_interface = config["gamer"]["player_interface"]
 
@@ -254,7 +284,7 @@ else:
 
 
 # frame_buffer = deque(maxlen=30)  # Buffer to store frames
-frame_counter = 1
+frame_counter = 1 #1
 #timeout_duration = 0.0001
 previous_command = None
 next_frame = 1
@@ -278,25 +308,49 @@ while True:
     current_fps = 1/(frm_rcv-frm_previoustime)
     frm_previoustime = frm_rcv
     #print(f"{frame_id}-fps:{current_fps}")
-    
+    if frame_id==1:
+        print("*******************It is 1 *****************")
+    # logging buffer to make it faster
+    log_frame_buffer = []
+    buffer_size = 100  # Write every 100 frames
+
     # set the display thread!
     with lock:
         latest_frame = frame.copy()  # Update frame for live display
 
     if frame_id:
         print(f"Detected Frame ID: {frame_id}")
+        #frame_counter = frame_id # Counter for No-QR Code frames
         
         if (my_try_counter%ack_freq)==0:
-            send_command(frame_id,current_fps,player_interface,type='Ack', fps = current_fps, cps = currrent_cps )
-        else:
-            pass
+            send_command(frame_id,current_fps,player_interface,type='Ack', fps = current_fps, cps = currrent_cps)
+            #log_frame_buffer.append(f"{frame_id},{current_fps},{0}\n")
+            #if len(log_frame_buffer) >= buffer_size: open(frame_log, "a").writelines(log_frame_buffer); log_frame_buffer.clear()
 
+            if frame_id == stop_frm_number:
+                break
+        else:
+
+            pass
+        
+        
         #next_frame = int(frame_id) + 1
 
         if frame_id == frame_counter+1:
-            frame_filename = f"{received_frames}/{frame_id:04d}_{frm_rcv}.png"
+            #frame_filename = f"{received_frames}/{frame_id:04d}_{frm_rcv}.png"
+            frame_filename = f"{received_frames}/{frame_id:04d}.png"
+            # Write logs if buffer is full 
+            # FID, FPS, Retry Status [noremal:0, retry:1, No_QR:2]
+            log_frame_buffer.append(f"{frame_id},{current_fps},{0}\n")
+            if len(log_frame_buffer) >= buffer_size: open(frame_log, "a").writelines(log_frame_buffer); log_frame_buffer.clear()
         else:
-            frame_filename = f"{received_frames}/{frame_id:04d}_{frm_rcv}_retry.png"
+            #frame_filename = f"{received_frames}/{frame_id:04d}_{frm_rcv}_retry.png"
+            frame_filename = f"{received_frames}/{frame_id:04d}_retry.png"
+            # Write logs if buffer is full 
+            # FID, FPS, Retry Status [noremal:0, retry:1, No_QR:2]
+            log_frame_buffer.append(f"{frame_id},{current_fps},{1}\n")
+            if len(log_frame_buffer) >= buffer_size: open(frame_log, "a").writelines(log_frame_buffer); log_frame_buffer.clear()
+
 
         frame_counter = frame_id
         
@@ -306,7 +360,12 @@ while True:
         send_command(frame_counter, previous_command,type='command',fps = current_fps, cps = currrent_cps ) # Send the Previous Command
         #continue
         #frame_counter+=1
-        frame_filename = f"{received_frames}/{frame_counter:04d}_{frm_rcv}_NoQR.png"
+        #frame_counter = frame_counter + 1
+        frame_filename = f"{received_frames}/{frame_counter:04d}_NoQR.png"
+        # Write logs if buffer is full 
+        # FID, FPS, Retry Status [noremal:0, retry:1, No_QR:2]
+        log_frame_buffer.append(f"{frame_id},{current_fps},{2}\n")
+        if len(log_frame_buffer) >= buffer_size: open(frame_log, "a").writelines(log_frame_buffer); log_frame_buffer.clear()
         pass 
     
     
@@ -344,8 +403,15 @@ while True:
 
     my_try_counter = my_try_counter + 1
     print(f'Recieved Frame # is: {my_try_counter}')
-    if my_try_counter == stop_frm_number or (max((frame_id),0)+1) == stop_frm_number:
-         break
+    
+    # Write any remaining in the log
+    if log_frame_buffer:
+        with open(frame_log, "a") as f:
+            f.writelines(log_frame_buffer)
+
+
+    #if my_try_counter == stop_frm_number or (max((frame_id),0)+1) == stop_frm_number:
+         #break
 
     # Press 'q' to exit the video display window
     #if cv2.waitKey(1) & 0xFF == ord('q'):
