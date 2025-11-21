@@ -339,6 +339,11 @@ while True:
         if frame_id == frame_counter+1:
             #frame_filename = f"{received_frames}/{frame_id:04d}_{frm_rcv}.png"
             frame_filename = f"{received_frames}/{frame_id:04d}.png"
+            ################################################################################## 
+            # Save the current frame to a file
+            cv2.imwrite(frame_filename, frame)
+            ##################################################################################
+
             # Write logs if buffer is full 
             # FID, FPS, Retry Status [noremal:0, retry:1, No_QR:2]
             log_frame_buffer.append(f"{frame_id},{current_fps},{0}\n")
@@ -353,6 +358,8 @@ while True:
 
 
         frame_counter = frame_id
+
+
         
     else:
         print("No QR code detected in this frame.")
@@ -369,8 +376,8 @@ while True:
         pass 
     
     
-    # Save the current frame to a file
-    cv2.imwrite(frame_filename, frame)
+    # Save the current frame to a file ############### Noting: Commented temporary!
+    #cv2.imwrite(frame_filename, frame)
     #print(f"Saved {frame_filename}") /// Commented
 
    

@@ -61,7 +61,7 @@ encoding:
     resolution:
         width: 1280 #800 #600 # default 1364 server ==> # 1920
         height: 720 #700 #400 # default 768  server ==? # 1080
-    starting_bitrate: 3000 #5000 # Kbps
+    starting_bitrate: 5000 # 5000 Kbps Note: To have less frame loss, please set it to a appropriate value for begining! 
     bitrate_min: 500
     bitrate_max: 100000
 # ---------------------------------------------------------------------------------------#
