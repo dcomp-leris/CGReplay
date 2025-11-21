@@ -300,7 +300,7 @@ def stream_frames(game_name):
     # Start the pipeline
     pipeline.set_state(Gst.State.PLAYING)
     
-    frame_id = 1  # Frame counter (starting from 1 for human-readable frame IDs)
+    #frame_id = 1  # Frame counter (starting from 1 for human-readable frame IDs)
     png_files = sorted([f for f in os.listdir(folder_path) if f.endswith(".png")])  # List PNG files
     # flag_lock = False
     cmd_counter = 0  #sync_df.shape[0] # max number 
@@ -308,10 +308,13 @@ def stream_frames(game_name):
     
 
     idx = 0
-    while idx <= len(png_files):
+    while idx < len(png_files):
         #if idx == stop_frm_number: # stop after streaming 'stop_frm_number' frames! 
             #break
         file = png_files[idx]  # Access the file by index
+        print("Log hint==>>>",file, idx)
+        
+        # Note: Checkpoint
 
         # Construct the full file path
         frame_path = os.path.join(folder_path, file)
@@ -319,6 +322,7 @@ def stream_frames(game_name):
         # Load the frame
         frame = cv2.imread(frame_path)  # Read the image file
         frame_id = int(file.split('.')[0])  # Extract frame ID from the filename
+        print("Debug:==>", frame_id)
 
         if frame_id == stop_frm_number+1: # stop after streaming 'stop_frm_number' frames! 
             break
@@ -328,7 +332,7 @@ def stream_frames(game_name):
             idx += 1  # Move to the next file if loading fails
             continue    
         
-        idx= idx + 1
+        #idx= idx + 1
 
 
         
@@ -352,10 +356,18 @@ def stream_frames(game_name):
         # Convert frame to bytes and push to GStreamer
         frame_byte = frame.tobytes()
         gst_buffer = Gst.Buffer.new_wrapped(frame_byte) #frame.tobytes())
-
          
+        # Debug: Keep it in mind 
         appsrc.emit("push-buffer", gst_buffer)
         # fpscomputing + processing time (Rendering)
+        #############################################################################################################
+        # Note: This code was added because the first frame was not being sent properly! 
+        if frame_id==1:
+            #gst_buffer = Gst.Buffer.new_wrapped(frame_byte) #frame.tobytes())
+            appsrc.emit("push-buffer", gst_buffer)
+            print('Sending the frame one again')
+        #############################################################################################################
+
         my_fps_time = time.perf_counter() 
         current_srv_fps = 1/(my_fps_time - previous_time)
         processing_time = my_fps_time - timestamp
@@ -509,6 +521,7 @@ def stream_frames(game_name):
 
 
             with open(rate_control_log, "a") as f: f.write(f"{frame_id},{rate_ctl}\n")        
+        idx= idx + 1
         
             
     # End the stream

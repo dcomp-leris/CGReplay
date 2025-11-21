@@ -287,7 +287,7 @@ else:
 frame_counter = 1 #1
 #timeout_duration = 0.0001
 previous_command = None
-next_frame = 1
+#next_frame = 1
 cmd_previoustime =frm_previoustime = time.perf_counter()
 currrent_cps = 0
 current_fps = 0
@@ -307,9 +307,8 @@ while True:
     frame_id, qr_data = read_qr_code_from_frame(frame)
     current_fps = 1/(frm_rcv-frm_previoustime)
     frm_previoustime = frm_rcv
-    #print(f"{frame_id}-fps:{current_fps}")
-    if frame_id==1:
-        print("*******************It is 1 *****************")
+
+
     # logging buffer to make it faster
     log_frame_buffer = []
     buffer_size = 100  # Write every 100 frames
@@ -321,7 +320,9 @@ while True:
     if frame_id:
         print(f"Detected Frame ID: {frame_id}")
         #frame_counter = frame_id # Counter for No-QR Code frames
-        
+
+
+
         if (my_try_counter%ack_freq)==0:
             send_command(frame_id,current_fps,player_interface,type='Ack', fps = current_fps, cps = currrent_cps)
             #log_frame_buffer.append(f"{frame_id},{current_fps},{0}\n")
@@ -336,12 +337,24 @@ while True:
         
         #next_frame = int(frame_id) + 1
 
+        frame_filename = f"{received_frames}/{frame_id:04d}.png"
+        cv2.imwrite(frame_filename, frame)
+        log_frame_buffer.append(f"{frame_id},{current_fps},{0}\n")
+        if len(log_frame_buffer) >= buffer_size: open(frame_log, "a").writelines(log_frame_buffer); log_frame_buffer.clear()
+
+        if frame_id != frame_counter+1:
+            print(f"⚠️  Frame ID Mismatch: Expected {frame_counter+1}, but got {frame_id}. Possible frame loss or out-of-order delivery.")
+            # FID, FPS, Retry Status [noremal:0, retry:1, No_QR:2]
+            log_frame_buffer.append(f"{frame_id},{current_fps},{1}\n")
+            if len(log_frame_buffer) >= buffer_size: open(frame_log, "a").writelines(log_frame_buffer); log_frame_buffer.clear()
+         
+        '''
         if frame_id == frame_counter+1:
             #frame_filename = f"{received_frames}/{frame_id:04d}_{frm_rcv}.png"
             frame_filename = f"{received_frames}/{frame_id:04d}.png"
             ################################################################################## 
             # Save the current frame to a file
-            cv2.imwrite(frame_filename, frame)
+            #cv2.imwrite(frame_filename, frame)
             ##################################################################################
 
             # Write logs if buffer is full 
@@ -355,7 +368,7 @@ while True:
             # FID, FPS, Retry Status [noremal:0, retry:1, No_QR:2]
             log_frame_buffer.append(f"{frame_id},{current_fps},{1}\n")
             if len(log_frame_buffer) >= buffer_size: open(frame_log, "a").writelines(log_frame_buffer); log_frame_buffer.clear()
-
+        '''
 
         frame_counter = frame_id
 
@@ -363,17 +376,24 @@ while True:
         
     else:
         print("No QR code detected in this frame.")
+        frame_counter = frame_counter + 1
         send_command(0,"Downgrade",type='Nack',fps = current_fps, cps = currrent_cps )   # Send NacK
         send_command(frame_counter, previous_command,type='command',fps = current_fps, cps = currrent_cps ) # Send the Previous Command
         #continue
         #frame_counter+=1
-        #frame_counter = frame_counter + 1
+        frame_counter = frame_counter + 1
         frame_filename = f"{received_frames}/{frame_counter:04d}_NoQR.png"
         # Write logs if buffer is full 
         # FID, FPS, Retry Status [noremal:0, retry:1, No_QR:2]
         log_frame_buffer.append(f"{frame_id},{current_fps},{2}\n")
         if len(log_frame_buffer) >= buffer_size: open(frame_log, "a").writelines(log_frame_buffer); log_frame_buffer.clear()
-        pass 
+
+
+
+        # FID, FPS, Retry Status [noremal:0, retry:1, No_QR:2]
+        log_frame_buffer.append(f"{frame_id},{current_fps},{2}\n")
+        if len(log_frame_buffer) >= buffer_size: open(frame_log, "a").writelines(log_frame_buffer); log_frame_buffer.clear()
+        #pass
     
     
     # Save the current frame to a file ############### Noting: Commented temporary!

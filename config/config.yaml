@@ -59,11 +59,11 @@ encoding:
     fps: 30  # Frames per second
     GOP: 10
     resolution:
-        width: 1280 #800 #600 # default 1364 server ==> # 1920
-        height: 720 #700 #400 # default 768  server ==? # 1080
-    starting_bitrate: 5000 # 5000 Kbps Note: To have less frame loss, please set it to a appropriate value for begining! 
-    bitrate_min: 500
-    bitrate_max: 100000
+        width: 1200 #1280  # 1280 #800 #600 # default 1364 server ==> # 1920
+        height: 720 #720  #720 #700 #400 # default 768  server ==? # 1080
+    starting_bitrate: 2000 # 5000 Kbps Note: To have less frame loss, please set it to a appropriate value for begining! 
+    bitrate_min: 2000
+    bitrate_max: 2000
 # ---------------------------------------------------------------------------------------#
 # Description: common Resolution
     # 1920×1080 (Full HD, 1080p)
@@ -83,10 +83,10 @@ sync:
     window_max: 20 # by default 4
     ack_freq: 20 # Send Ack after receiving 30 frames!
     ## Automatically increase and decrease the encoding rate (in CG server) based on frame quality and retransmission!
-    jump: 1 #0.4
-    rise: 0.3 #0.1
-    decrese: 0.1
-    fall: 0.5 #0.2
+    jump: 0 #1 #0.4
+    rise: 0 # 0.3 #0.1
+    decrese: 0 #0.1
+    fall: 0 # 0.5 #0.2
 
 # ---------------------------------------------------------------------------------------#
 # CGReplay Running Setup
