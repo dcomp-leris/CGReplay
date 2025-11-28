@@ -69,7 +69,7 @@ with open(rate_log, "w") as f:
 with open(time_log, "w") as f:
     f.write("frame_id,frame_timestamp,cmd_timestamp\n")
 with open(frame_log, "w") as f:
-    f.write("frame_id,fps,retry_status\n")
+    f.write("frame_id,frame_counter,fps,retry_status\n")
 
 
 
@@ -312,7 +312,7 @@ while True:
     # logging buffer to make it faster
     log_frame_buffer = []
     buffer_size = 100  # Write every 100 frames
-
+    previous_frame_id = 0
     # set the display thread!
     with lock:
         latest_frame = frame.copy()  # Update frame for live display
@@ -320,7 +320,7 @@ while True:
     if frame_id:
         print(f"Detected Frame ID: {frame_id}")
         #frame_counter = frame_id # Counter for No-QR Code frames
-
+        
 
 
         if (my_try_counter%ack_freq)==0:
@@ -338,15 +338,25 @@ while True:
         #next_frame = int(frame_id) + 1
 
         frame_filename = f"{received_frames}/{frame_id:04d}.png"
-        cv2.imwrite(frame_filename, frame)
-        log_frame_buffer.append(f"{frame_id},{current_fps},{0}\n")
-        if len(log_frame_buffer) >= buffer_size: open(frame_log, "a").writelines(log_frame_buffer); log_frame_buffer.clear()
 
-        if frame_id != frame_counter+1:
+        
+
+        if frame_id!=frame_counter and (previous_frame_id+1)!=frame_id and frame_id!=1:
             print(f"⚠️  Frame ID Mismatch: Expected {frame_counter+1}, but got {frame_id}. Possible frame loss or out-of-order delivery.")
             # FID, FPS, Retry Status [noremal:0, retry:1, No_QR:2]
-            log_frame_buffer.append(f"{frame_id},{current_fps},{1}\n")
+            log_frame_buffer.append(f"{frame_id},{frame_counter},{current_fps},{1}\n")
             if len(log_frame_buffer) >= buffer_size: open(frame_log, "a").writelines(log_frame_buffer); log_frame_buffer.clear()
+            frame_counter = frame_id+1
+
+        else:
+            previous_frame_id = frame_id
+            cv2.imwrite(frame_filename, frame)
+            log_frame_buffer.append(f"{frame_id},{frame_counter},{current_fps},{0}\n")
+            if len(log_frame_buffer) >= buffer_size: open(frame_log, "a").writelines(log_frame_buffer); log_frame_buffer.clear()
+            frame_counter = frame_counter + 1
+            
+
+
          
         '''
         if frame_id == frame_counter+1:
@@ -370,7 +380,9 @@ while True:
             if len(log_frame_buffer) >= buffer_size: open(frame_log, "a").writelines(log_frame_buffer); log_frame_buffer.clear()
         '''
 
-        frame_counter = frame_id
+        
+        # frame_counter = frame_id
+        
 
 
         
@@ -380,21 +392,13 @@ while True:
         send_command(0,"Downgrade",type='Nack',fps = current_fps, cps = currrent_cps )   # Send NacK
         send_command(frame_counter, previous_command,type='command',fps = current_fps, cps = currrent_cps ) # Send the Previous Command
         #continue
-        #frame_counter+=1
-        frame_counter = frame_counter + 1
         frame_filename = f"{received_frames}/{frame_counter:04d}_NoQR.png"
         # Write logs if buffer is full 
         # FID, FPS, Retry Status [noremal:0, retry:1, No_QR:2]
-        log_frame_buffer.append(f"{frame_id},{current_fps},{2}\n")
-        if len(log_frame_buffer) >= buffer_size: open(frame_log, "a").writelines(log_frame_buffer); log_frame_buffer.clear()
-
-
-
-        # FID, FPS, Retry Status [noremal:0, retry:1, No_QR:2]
-        log_frame_buffer.append(f"{frame_id},{current_fps},{2}\n")
+        log_frame_buffer.append(f"{frame_id},{frame_counter},{current_fps},{2}\n")
         if len(log_frame_buffer) >= buffer_size: open(frame_log, "a").writelines(log_frame_buffer); log_frame_buffer.clear()
         #pass
-    
+        #frame_counter = frame_counter + 1
     
     # Save the current frame to a file ############### Noting: Commented temporary!
     #cv2.imwrite(frame_filename, frame)

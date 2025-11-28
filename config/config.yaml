@@ -83,10 +83,10 @@ sync:
     window_max: 20 # by default 4
     ack_freq: 20 # Send Ack after receiving 30 frames!
     ## Automatically increase and decrease the encoding rate (in CG server) based on frame quality and retransmission!
-    jump: 0 #1 #0.4
-    rise: 0 # 0.3 #0.1
-    decrese: 0 #0.1
-    fall: 0 # 0.5 #0.2
+    jump: 1 #0.4
+    rise: 0.3 #0.1
+    decrese: 0.1
+    fall: 0.5 #0.2
 
 # ---------------------------------------------------------------------------------------#
 # CGReplay Running Setup
