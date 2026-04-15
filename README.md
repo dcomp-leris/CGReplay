@@ -5,6 +5,8 @@
 [![Paper](https://img.shields.io/badge/Paper-2025/05/21-green)](CGReplay_Demo.pdf)
 [![Paper](https://img.shields.io/badge/Presentation-2025/06/21-red)](https://docs.google.com/presentation/d/1Kf5hDO_R_EbwMqTEkOlxQvo_gMdOgFPpOrphWt-vvn8/edit?usp=sharing)
 
+[![Paper](https://img.shields.io/badge/Video-CGReplay-red)]((https://drive.google.com/file/d/1PqZIjm1KWJusxxdxbzqLH0c95rOksbCQ/view?usp=drive_link))
+
 
 Cloud Gaming (CG) research faces challenges due to the unpredictability of game engines and restricted access to commercial platforms and their logs.
 
